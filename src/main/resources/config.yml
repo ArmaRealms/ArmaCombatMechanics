@@ -52,6 +52,7 @@ mode-messages:
   invalid-modeset: "&cPlease specify a valid modeset!"
   invalid-player: "&cPlease specify a valid player!"
   mode-set: "&2Set modeset to &7%s"
+  send-mode-set-message: false
 
 # ########################
 # COMBAT MODULE SETTINGS
