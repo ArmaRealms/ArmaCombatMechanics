@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.UUID;
@@ -35,7 +36,7 @@ public class ModesetListener extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
+    public void onPlayerChangedWorld(@NotNull PlayerChangedWorldEvent event) {
         final Player player = event.getPlayer();
         final UUID playerId = player.getUniqueId();
         final PlayerData playerData = PlayerStorage.getPlayerData(playerId);
@@ -43,7 +44,7 @@ public class ModesetListener extends OCMModule {
         updateModeset(player, player.getWorld().getUID(), modesetFromName);
     }
 
-    private static void updateModeset(Player player, UUID worldId, String modesetFromName) {
+    private static void updateModeset(@NotNull Player player, UUID worldId, String modesetFromName) {
         final UUID playerId = player.getUniqueId();
         final PlayerData playerData = PlayerStorage.getPlayerData(playerId);
         final String originalModeset = playerData.getModesetForWorld(worldId);
@@ -69,16 +70,18 @@ public class ModesetListener extends OCMModule {
             PlayerStorage.setPlayerData(playerId, playerData);
             PlayerStorage.scheduleSave();
 
-            Messenger.send(player,
-                    Config.getConfig().getString("mode-messages.mode-set",
-                            "&4ERROR: &rmode-messages.mode-set string missing"),
-                    modesetName
-            );
+            if (Config.getConfig().getBoolean("mode-messages.send-mode-set-message")) {
+                Messenger.send(player,
+                        Config.getConfig().getString("mode-messages.mode-set",
+                                "&4ERROR: &rmode-messages.mode-set string missing"),
+                        modesetName
+                );
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         updateModeset(player, player.getWorld().getUID(), null);
     }
