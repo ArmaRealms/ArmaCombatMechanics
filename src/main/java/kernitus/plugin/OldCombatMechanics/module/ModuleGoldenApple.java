@@ -8,6 +8,7 @@ package kernitus.plugin.OldCombatMechanics.module;
 import com.google.common.collect.ImmutableSet;
 import kernitus.plugin.OldCombatMechanics.OCMMain;
 import kernitus.plugin.OldCombatMechanics.utilities.Messenger;
+import kernitus.plugin.OldCombatMechanics.utilities.potions.PotionEffectTypeCompat;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -43,7 +44,7 @@ public class ModuleGoldenApple extends OCMModule {
             PotionEffectType.REGENERATION);
     // Napple: absorption IV, regen II, fire resistance I, resistance I
     private static final Set<PotionEffectType> nappleEffects = ImmutableSet.of(PotionEffectType.ABSORPTION,
-            PotionEffectType.REGENERATION, PotionEffectType.FIRE_RESISTANCE, PotionEffectType.DAMAGE_RESISTANCE);
+            PotionEffectType.REGENERATION, PotionEffectType.FIRE_RESISTANCE, PotionEffectTypeCompat.RESISTANCE.get());
     private List<PotionEffect> enchantedGoldenAppleEffects, goldenAppleEffects;
     private ShapedRecipe enchantedAppleRecipe;
 
@@ -71,8 +72,8 @@ public class ModuleGoldenApple extends OCMModule {
         );
         lastEaten = new WeakHashMap<>();
 
-        enchantedGoldenAppleEffects = getPotionEffects("napple");
-        goldenAppleEffects = getPotionEffects("gapple");
+        enchantedGoldenAppleEffects = getPotionEffects("enchanted-golden-apple-effects");
+        goldenAppleEffects = getPotionEffects("golden-apple-effects");
 
         try {
             enchantedAppleRecipe = new ShapedRecipe(
@@ -96,7 +97,7 @@ public class ModuleGoldenApple extends OCMModule {
 
     private void registerCrafting() {
         if (isEnabled() && module().getBoolean("enchanted-golden-apple-crafting")) {
-            if (Bukkit.getRecipesFor(ENCHANTED_GOLDEN_APPLE.newInstance()).size() > 0) return;
+            if (!Bukkit.getRecipesFor(ENCHANTED_GOLDEN_APPLE.newInstance()).isEmpty()) return;
             Bukkit.addRecipe(enchantedAppleRecipe);
             debug("Added napple recipe");
         }
@@ -191,32 +192,43 @@ public class ModuleGoldenApple extends OCMModule {
         }, 1L);
     }
 
-    private void applyEffects(LivingEntity target, List<PotionEffect> effects) {
-        for (PotionEffect effect : effects) {
-            final OptionalInt maxActiveAmplifier = target.getActivePotionEffects().stream()
-                    .filter(potionEffect -> potionEffect.getType() == effect.getType())
-                    .mapToInt(PotionEffect::getAmplifier)
-                    .max();
 
-            // If active effect stronger, do not apply weaker one
-            if (maxActiveAmplifier.orElse(-1) > effect.getAmplifier()) continue;
+    private void applyEffects(LivingEntity target, List<PotionEffect> newEffects) {
+        for (PotionEffect newEffect : newEffects) {
+            // Find the existing effect of the same type with the highest amplifier
+            final PotionEffect highestExistingEffect = target.getActivePotionEffects().stream()
+                    .filter(e -> e.getType() == newEffect.getType())
+                    .max(Comparator.comparingInt(PotionEffect::getAmplifier))
+                    .orElse(null);
 
-            // If active effect weaker, remove it and apply new one
-            maxActiveAmplifier.ifPresent(ignored -> target.removePotionEffect(effect.getType()));
-
-            target.addPotionEffect(effect);
+            if (highestExistingEffect != null) {
+                // If the new effect has a higher amplifier, apply it
+                if (newEffect.getAmplifier() > highestExistingEffect.getAmplifier()) {
+                    target.addPotionEffect(newEffect);
+                }
+                // If the amplifiers are the same and the new effect has a longer duration, refresh the duration
+                else if (newEffect.getAmplifier() == highestExistingEffect.getAmplifier() &&
+                        newEffect.getDuration() > highestExistingEffect.getDuration()) {
+                    target.addPotionEffect(newEffect);
+                }
+                // If the new effect has a lower amplifier or shorter/equal duration, do nothing
+            } else {
+                // If there is no existing effect of the same type, apply the new effect
+                target.addPotionEffect(newEffect);
+            }
         }
     }
 
-    private List<PotionEffect> getPotionEffects(String apple) {
+
+    private List<PotionEffect> getPotionEffects(String path) {
         final List<PotionEffect> appleEffects = new ArrayList<>();
 
-        final ConfigurationSection sect = module().getConfigurationSection(apple + "-effects");
+        final ConfigurationSection sect = module().getConfigurationSection(path);
         for (String key : sect.getKeys(false)) {
-            final int duration = sect.getInt(key + ".duration");
+            final int duration = sect.getInt(key + ".duration") * 20; // Convert seconds to ticks
             final int amplifier = sect.getInt(key + ".amplifier");
 
-            final PotionEffectType type = PotionEffectType.getByName(key);
+            final PotionEffectType type = PotionEffectTypeCompat.fromNewName(key);
             Objects.requireNonNull(type, String.format("Invalid potion effect type '%s'!", key));
 
             final PotionEffect fx = new PotionEffect(type, duration, amplifier);
@@ -233,8 +245,9 @@ public class ModuleGoldenApple extends OCMModule {
 
     /**
      * Get player's current golden apple cooldown
+     *
      * @param playerUUID The UUID of the player to check the cooldown for.
-     * @return The remaining cooldown time in seconds, or 0 if there is no cooldown or it has expired.
+     * @return The remaining cooldown time in seconds, or 0 if there is no cooldown, or it has expired.
      */
     public long getGappleCooldown(UUID playerUUID) {
         final LastEaten lastEatenInfo = lastEaten.get(playerUUID);
@@ -248,8 +261,9 @@ public class ModuleGoldenApple extends OCMModule {
 
     /**
      * Get player's current enchanted golden apple cooldown
+     *
      * @param playerUUID The UUID of the player to check the cooldown for.
-     * @return The remaining cooldown time in seconds, or 0 if there is no cooldown or it has expired.
+     * @return The remaining cooldown time in seconds, or 0 if there is no cooldown, or it has expired.
      */
     public long getNappleCooldown(UUID playerUUID) {
         final LastEaten lastEatenInfo = lastEaten.get(playerUUID);
@@ -292,17 +306,7 @@ public class ModuleGoldenApple extends OCMModule {
         }
     }
 
-    private static class Cooldown {
-        private final long normal;
-        private final long enchanted;
-        private final boolean sharedCooldown;
-
-        Cooldown(long normal, long enchanted, boolean sharedCooldown) {
-            this.normal = normal;
-            this.enchanted = enchanted;
-            this.sharedCooldown = sharedCooldown;
-        }
-
+    private record Cooldown(long normal, long enchanted, boolean sharedCooldown) {
         private long getCooldownForItem(ItemStack item) {
             return ENCHANTED_GOLDEN_APPLE.isSame(item) ? enchanted : normal;
         }

@@ -5,11 +5,10 @@
  */
 package kernitus.plugin.OldCombatMechanics.utilities;
 
-import kernitus.plugin.OldCombatMechanics.utilities.potions.GenericPotionDurations;
 import kernitus.plugin.OldCombatMechanics.utilities.potions.PotionDurations;
+import kernitus.plugin.OldCombatMechanics.utilities.potions.PotionTypeCompat;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.potion.PotionType;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -58,37 +57,36 @@ public class ConfigUtils {
     }
 
     /**
-     * Gets potion duration values from config
+     * Gets potion duration values from config for all configured potion types.
+     * Will create map of new potion type name to durations.
      *
      * @param section The section from which to load the duration values
-     * @return HashMap of PotionType and PotionDurations
+     * @return HashMap of {@link String} and {@link PotionDurations}
      */
-    public static HashMap<PotionType, PotionDurations> loadPotionDurationsList(ConfigurationSection section) {
-        Objects.requireNonNull(section, "section cannot be null!");
-        final HashMap<PotionType, PotionDurations> durationsHashMap = new HashMap<>();
+    public static HashMap<PotionTypeCompat, PotionDurations> loadPotionDurationsList(ConfigurationSection section) {
+        Objects.requireNonNull(section, "potion durations section cannot be null!");
+
+        final HashMap<PotionTypeCompat, PotionDurations> durationsHashMap = new HashMap<>();
         final ConfigurationSection durationsSection = section.getConfigurationSection("potion-durations");
 
-        for (String potionName : durationsSection.getKeys(false)) {
-            final ConfigurationSection potionSection = durationsSection.getConfigurationSection(potionName);
-            final ConfigurationSection drinkable = potionSection.getConfigurationSection("drinkable");
-            final ConfigurationSection splash = potionSection.getConfigurationSection("splash");
+        final ConfigurationSection drinkableSection = durationsSection.getConfigurationSection("drinkable");
+        final ConfigurationSection splashSection = durationsSection.getConfigurationSection("splash");
 
-            potionName = potionName.toUpperCase(Locale.ROOT);
-
+        for (String newPotionTypeName : drinkableSection.getKeys(false)) {
             try {
-                final PotionType potionType = PotionType.valueOf(potionName);
-                durationsHashMap.put(potionType, new PotionDurations(getGenericDurations(drinkable), getGenericDurations(splash)));
+                // Get durations in seconds and convert to ticks
+                final int drinkableDuration = drinkableSection.getInt(newPotionTypeName) * 20;
+                final int splashDuration = splashSection.getInt(newPotionTypeName) * 20;
+                final PotionTypeCompat potionTypeCompat = new PotionTypeCompat(newPotionTypeName);
 
-            } catch (
-                    IllegalArgumentException e) { //In case the potion doesn't exist in the version running on the server
-                Messenger.debug("Skipping loading " + potionName + " potion");
+                durationsHashMap.put(potionTypeCompat, new PotionDurations(drinkableDuration, splashDuration));
+            } catch (IllegalArgumentException e) {
+                // In case the potion doesn't exist in the version running on the server
+                Messenger.debug("Skipping loading " + newPotionTypeName + " potion");
             }
         }
 
         return durationsHashMap;
     }
 
-    private static GenericPotionDurations getGenericDurations(ConfigurationSection section) {
-        return new GenericPotionDurations(section.getInt("base"), section.getInt("II"), section.getInt("extended"));
-    }
 }

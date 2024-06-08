@@ -6,9 +6,11 @@
 
 package kernitus.plugin.OldCombatMechanics.utilities.damage;
 
+import kernitus.plugin.OldCombatMechanics.utilities.potions.PotionEffectTypeCompat;
 import kernitus.plugin.OldCombatMechanics.utilities.reflection.Reflector;
 import kernitus.plugin.OldCombatMechanics.utilities.reflection.SpigotFunctionChooser;
 import kernitus.plugin.OldCombatMechanics.utilities.reflection.VersionCompatUtils;
+import kernitus.plugin.OldCombatMechanics.versions.enchantments.EnchantmentCompat;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -17,7 +19,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -56,9 +57,9 @@ public class DefenceUtils {
 
     // Stalagmite ignores armour but other blocks under CONTACT do not, explicitly checked below
     static {
-        if (Reflector.versionIsNewerOrEqualAs(1, 11, 0))
+        if (Reflector.versionIsNewerOrEqualTo(1, 11, 0))
             ARMOUR_IGNORING_CAUSES.add(EntityDamageEvent.DamageCause.CRAMMING);
-        if (Reflector.versionIsNewerOrEqualAs(1, 17, 0))
+        if (Reflector.versionIsNewerOrEqualTo(1, 17, 0))
             ARMOUR_IGNORING_CAUSES.add(EntityDamageEvent.DamageCause.FREEZE);
     }
 
@@ -96,7 +97,7 @@ public class DefenceUtils {
             // If the damage cause does not ignore armour
             // If the block they are in is a stalagmite, also ignore armour
             if (!ARMOUR_IGNORING_CAUSES.contains(damageCause) &&
-                    !(Reflector.versionIsNewerOrEqualAs(1, 19, 0) &&
+                    !(Reflector.versionIsNewerOrEqualTo(1, 19, 0) &&
                             damageCause == EntityDamageEvent.DamageCause.CONTACT &&
                             damagedEntity.getLocation().getBlock().getType() == Material.POINTED_DRIPSTONE)
             ) {
@@ -111,8 +112,8 @@ public class DefenceUtils {
             // Apply resistance effect
             if (damageModifiers.containsKey(EntityDamageEvent.DamageModifier.RESISTANCE) &&
                     damageCause != EntityDamageEvent.DamageCause.VOID &&
-                    damagedEntity.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
-                final int level = damagedEntity.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE).getAmplifier() + 1;
+                    damagedEntity.hasPotionEffect(PotionEffectTypeCompat.RESISTANCE.get())) {
+                final int level = damagedEntity.getPotionEffect(PotionEffectTypeCompat.RESISTANCE.get()).getAmplifier() + 1;
                 // Make sure we don't go over 100% protection
                 final double resistanceReductionFactor = Math.min(1.0, level * REDUCTION_PER_RESISTANCE_LEVEL);
                 final double resistanceReduction = -resistanceReductionFactor * currentDamage;
@@ -163,8 +164,8 @@ public class DefenceUtils {
         double finalDamage = baseDamage - (ARMOUR_IGNORING_CAUSES.contains(damageCause) ? 0 : (baseDamage * reductionFactor));
 
         // Calculate resistance
-        if (defender.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
-            int resistanceLevel = defender.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE).getAmplifier() + 1;
+        if (defender.hasPotionEffect(PotionEffectTypeCompat.RESISTANCE.get())) {
+            int resistanceLevel = defender.getPotionEffect(PotionEffectTypeCompat.RESISTANCE.get()).getAmplifier() + 1;
             finalDamage *= 1.0 - (resistanceLevel * 0.2);
         }
 
@@ -254,14 +255,14 @@ public class DefenceUtils {
                     EntityDamageEvent.DamageCause.THORNS,
                     EntityDamageEvent.DamageCause.DRAGON_BREATH
             );
-            if (Reflector.versionIsNewerOrEqualAs(1, 10, 0))
+            if (Reflector.versionIsNewerOrEqualTo(1, 10, 0))
                 damageCauses.add(EntityDamageEvent.DamageCause.HOT_FLOOR);
-            if (Reflector.versionIsNewerOrEqualAs(1, 12, 0))
+            if (Reflector.versionIsNewerOrEqualTo(1, 12, 0))
                 damageCauses.add(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK);
 
             return damageCauses;
         },
-                0.75, Enchantment.PROTECTION_ENVIRONMENTAL),
+                0.75, EnchantmentCompat.PROTECTION.get()),
         FIRE_PROTECTION(() -> {
             EnumSet<EntityDamageEvent.DamageCause> damageCauses = EnumSet.of(
                     EntityDamageEvent.DamageCause.FIRE,
@@ -269,22 +270,22 @@ public class DefenceUtils {
                     EntityDamageEvent.DamageCause.LAVA
             );
 
-            if (Reflector.versionIsNewerOrEqualAs(1, 10, 0)) {
+            if (Reflector.versionIsNewerOrEqualTo(1, 10, 0)) {
                 damageCauses.add(EntityDamageEvent.DamageCause.HOT_FLOOR);
             }
 
             return damageCauses;
-        }, 1.25, Enchantment.PROTECTION_FIRE),
+        }, 1.25, EnchantmentCompat.FIRE_PROTECTION.get()),
         BLAST_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,
                 EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
-        ), 1.5, Enchantment.PROTECTION_EXPLOSIONS),
+        ), 1.5, EnchantmentCompat.BLAST_PROTECTION.get()),
         PROJECTILE_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.PROJECTILE
-        ), 1.5, Enchantment.PROTECTION_PROJECTILE),
+        ), 1.5, EnchantmentCompat.PROJECTILE_PROTECTION.get()),
         FALL_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.FALL
-        ), 2.5, Enchantment.PROTECTION_FALL);
+        ), 2.5, EnchantmentCompat.FEATHER_FALLING.get());
 
         private final Set<EntityDamageEvent.DamageCause> protection;
         private final double typeModifier;
