@@ -7,8 +7,6 @@ package kernitus.plugin.OldCombatMechanics.module;
 
 import kernitus.plugin.OldCombatMechanics.OCMMain;
 import kernitus.plugin.OldCombatMechanics.utilities.MathsHelper;
-import me.vagdedes.spartan.api.API;
-import me.vagdedes.spartan.system.Enums.HackType;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
@@ -29,16 +27,13 @@ import java.util.WeakHashMap;
 public class ModulePlayerRegen extends OCMModule {
 
     private final Map<UUID, Long> healTimes = new WeakHashMap<>();
-    private boolean spartanInstalled;
 
-    public ModulePlayerRegen(OCMMain plugin) {
+    public ModulePlayerRegen(final OCMMain plugin) {
         super(plugin, "old-player-regen");
-
-        initSpartan();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onRegen(EntityRegainHealthEvent e) {
+    public void onRegen(final EntityRegainHealthEvent e) {
         if (e.getEntityType() != EntityType.PLAYER
                 || e.getRegainReason() != EntityRegainHealthEvent.RegainReason.SATIATED)
             return;
@@ -69,13 +64,12 @@ public class ModulePlayerRegen extends OCMModule {
             return;
         }
 
-        final double maxHealth = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        final double maxHealth = p.getAttribute(Attribute.MAX_HEALTH).getValue();
         final double playerHealth = p.getHealth();
 
         if (playerHealth < maxHealth) {
             p.setHealth(MathsHelper.clamp(playerHealth + module().getInt("amount"), 0.0, maxHealth));
             healTimes.put(playerId, currentTime);
-            if (spartanInstalled) disableSpartanRegenCheck(p);
         }
 
         // Calculate new exhaustion value, must be between 0 and 4. If above, it will reduce the saturation in the following tick.
@@ -90,15 +84,7 @@ public class ModulePlayerRegen extends OCMModule {
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e) {
+    public void onPlayerQuit(final PlayerQuitEvent e) {
         healTimes.remove(e.getPlayer().getUniqueId());
-    }
-
-    private void disableSpartanRegenCheck(Player player) {
-        API.cancelCheck(player, HackType.FastHeal, 1);
-    }
-
-    private void initSpartan() {
-        spartanInstalled = Bukkit.getPluginManager().getPlugin("Spartan") != null;
     }
 }
