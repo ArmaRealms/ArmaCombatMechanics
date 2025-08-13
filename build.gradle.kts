@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
-    id("com.gradleup.shadow") version "9.0.1"
+    alias(libs.plugins.shadow)
 }
 
 repositories {
@@ -20,11 +20,11 @@ repositories {
 }
 
 dependencies {
-    implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT")
+    implementation(libs.bstats.bukkit)
+    compileOnly(libs.spigot.api)
     // Shaded in by Bukkit
-    compileOnly("io.netty:netty-all:4.1.93.Final")
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly(libs.netty.all)
+    compileOnly(libs.placeholderapi)
 }
 
 group = "kernitus.plugin.OldCombatMechanics"
@@ -33,12 +33,12 @@ description = "OldCombatMechanics"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get().toInt()))
     }
 }
 
 sourceSets {
-    main {
+    named("main") {
         java {
             exclude("kernitus/plugin/OldCombatMechanics/tester/**")
         }
@@ -57,7 +57,7 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-tasks.named("assemble").configure {
+tasks.named("assemble") {
     dependsOn("shadowJar")
 }
 

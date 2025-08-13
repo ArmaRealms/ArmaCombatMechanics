@@ -1,0 +1,16 @@
+[versions]
+java = "21"
+shadow = "9.0.1"
+bstats = "3.0.2"
+spigot = "1.21.8-R0.1-SNAPSHOT"
+netty = "4.1.93.Final"
+placeholderapi = "2.11.6"
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+
+[libraries]
+bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+spigot-api     = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
+netty-all      = { module = "io.netty:netty-all", version.ref = "netty" }
+placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
