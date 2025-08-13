@@ -13,7 +13,7 @@ softdepend: [PlaceholderAPI, Spartan]
 api-version: 1.13
 
 commands:
-  OldCombatMechanics:
+  oldcombatmechanics:
    description: OldCombatMechanics's main command
    aliases: [ocm]
    permission: OldCombatMechanics.commands

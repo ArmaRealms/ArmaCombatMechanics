@@ -13,31 +13,37 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.generator.WorldInfo;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class OCMCommandHandler implements CommandExecutor {
+public class OCMCommandHandler implements TabExecutor {
     private static final String NO_PERMISSION = "&cYou need the permission '%s' to do that!";
 
     private final OCMMain plugin;
-    private final File pluginFile;
 
     enum Subcommand {reload, toggle, enable, disable}
 
-    public OCMCommandHandler(OCMMain instance, File pluginFile) {
+    public OCMCommandHandler(final OCMMain instance) {
         this.plugin = instance;
-        this.pluginFile = pluginFile;
     }
 
-    private void help(OCMMain plugin, CommandSender sender) {
+    private void help(@NotNull final OCMMain plugin, final CommandSender sender) {
         final PluginDescriptionFile description = plugin.getDescription();
 
         Messenger.send(sender, ChatColor.DARK_GRAY + Messenger.HORIZONTAL_BAR);
@@ -55,12 +61,12 @@ public class OCMCommandHandler implements CommandExecutor {
 
     }
 
-    private void reload(CommandSender sender) {
+    private void reload(final CommandSender sender) {
         Config.reload();
         Messenger.send(sender, "&6&lOldCombatMechanics&e config file reloaded");
     }
 
-    private void toggle(OCMMain plugin, CommandSender sender, String[] args) {
+    private void toggle(@NotNull final OCMMain plugin, final CommandSender sender, final String @NotNull [] args) {
         final FileConfiguration config = plugin.getConfig();
 
         Player player = null;
@@ -84,7 +90,7 @@ public class OCMCommandHandler implements CommandExecutor {
         }
 
         if (mode == null) {
-            ModuleAttackCooldown.PVPMode oldMode = ModuleAttackCooldown.PVPMode.getModeForPlayer(player);
+            final ModuleAttackCooldown.PVPMode oldMode = ModuleAttackCooldown.PVPMode.getModeForPlayer(player);
             mode = oldMode == ModuleAttackCooldown.PVPMode.NEW_PVP ?
                     ModuleAttackCooldown.PVPMode.OLD_PVP : ModuleAttackCooldown.PVPMode.NEW_PVP;
         }
@@ -98,17 +104,7 @@ public class OCMCommandHandler implements CommandExecutor {
         Messenger.sendNormalMessage(sender, message);
     }
 
-    /*
-    private void test(OCMMain plugin, CommandSender sender) {
-        final Location location = sender instanceof Player ?
-                ((Player) sender).getLocation() :
-                sender.getServer().getWorlds().get(0).getSpawnLocation();
-
-        new InGameTester(plugin).performTests(sender, location);
-    }
-     */
-
-    private void wideToggle(CommandSender sender, String[] args, ModuleAttackCooldown.PVPMode mode) {
+    private void wideToggle(final CommandSender sender, final String @NotNull [] args, final ModuleAttackCooldown.PVPMode mode) {
         final Set<World> worlds = args.length > 1 ?
                 Arrays.asList(args).subList(1, args.length).stream().map(Bukkit::getWorld).filter(Objects::nonNull).collect(Collectors.toSet())
                 : new HashSet<>(Bukkit.getWorlds());
@@ -118,11 +114,14 @@ public class OCMCommandHandler implements CommandExecutor {
 
         // Do not use method reference to get world name because with 1.18 method was moved from World to WorldInfo
         final String message = (mode == ModuleAttackCooldown.PVPMode.NEW_PVP ? "Enabled" : "Disabled") + " cooldown for worlds: " +
-                worlds.stream().map(w -> w.getName()).reduce((a, b) -> a + ", " + b).orElse("none!");
+                worlds.stream().map(WorldInfo::getName)
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("none!");
         Messenger.sendNormalMessage(sender, message);
     }
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
+    @Override
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command cmd, @NotNull final String label, final String @NotNull [] args) {
         if (args.length < 1) {
             help(plugin, sender);
         } else {
@@ -149,24 +148,58 @@ public class OCMCommandHandler implements CommandExecutor {
                                 throw new CommandNotRecognisedException();
                         }
                     }
-                } catch (IllegalArgumentException e) {
+                } catch (final IllegalArgumentException e) {
                     throw new CommandNotRecognisedException();
                 }
-            } catch (CommandNotRecognisedException e) {
+            } catch (final CommandNotRecognisedException e) {
                 Messenger.sendNormalMessage(sender, "Subcommand not recognised!");
             }
         }
         return true;
     }
 
+    @Nullable
+    @Override
+    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String @NotNull [] args) {
+        final List<String> completions = new ArrayList<>();
+
+        if (args.length < 2) {
+            completions.addAll(Arrays.stream(Subcommand.values())
+                    .filter(arg -> arg.toString().startsWith(args[0]))
+                    .filter(arg -> OCMCommandHandler.checkPermissions(sender, arg))
+                    .map(Enum::toString)
+                    .toList());
+        } else {
+            if (args[0].equalsIgnoreCase(Subcommand.toggle.toString())) {
+                if (args.length < 3) {
+                    completions.addAll(Bukkit.getOnlinePlayers().stream()
+                            .map(Player::getName)
+                            .filter(arg -> arg.startsWith(args[1]))
+                            .toList());
+                } else {
+                    completions.addAll(Stream.of("on", "off").filter(arg -> arg.startsWith(args[2])).collect(Collectors.toList()));
+                }
+            } else if (args[0].equalsIgnoreCase(Subcommand.enable.toString()) || args[0].equalsIgnoreCase(Subcommand.disable.toString())) {
+                // Do not use method reference to get world name because with 1.18 method was moved from World to WorldInfo
+                completions.addAll(Bukkit.getWorlds().stream()
+                        .map(WorldInfo::getName)
+                        .filter(name -> !Arrays.asList(args).subList(1, args.length).contains(name))
+                        .filter(arg -> arg.startsWith(args[args.length - 1]))
+                        .toList());
+            }
+        }
+
+        return completions;
+    }
+
     private static class CommandNotRecognisedException extends IllegalArgumentException {
     }
 
-    static boolean checkPermissions(CommandSender sender, Subcommand subcommand) {
+    static boolean checkPermissions(final CommandSender sender, final Subcommand subcommand) {
         return checkPermissions(sender, subcommand, false);
     }
 
-    static boolean checkPermissions(CommandSender sender, Subcommand subcommand, boolean sendMessage) {
+    static boolean checkPermissions(@NotNull final CommandSender sender, final Subcommand subcommand, final boolean sendMessage) {
         final boolean hasPermission = sender.hasPermission("oldcombatmechanics." + subcommand);
         if (sendMessage && !hasPermission)
             Messenger.send(sender, NO_PERMISSION, "oldcombatmechanics." + subcommand);

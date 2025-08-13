@@ -5,11 +5,38 @@
  */
 package kernitus.plugin.OldCombatMechanics;
 
-import kernitus.plugin.OldCombatMechanics.commands.OCMCommandCompleter;
 import kernitus.plugin.OldCombatMechanics.commands.OCMCommandHandler;
 import kernitus.plugin.OldCombatMechanics.hooks.PlaceholderAPIHook;
 import kernitus.plugin.OldCombatMechanics.hooks.api.Hook;
-import kernitus.plugin.OldCombatMechanics.module.*;
+import kernitus.plugin.OldCombatMechanics.module.ModuleAttackCooldown;
+import kernitus.plugin.OldCombatMechanics.module.ModuleAttackFrequency;
+import kernitus.plugin.OldCombatMechanics.module.ModuleAttackSounds;
+import kernitus.plugin.OldCombatMechanics.module.ModuleChorusFruit;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableBowBoost;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableCrafting;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableElytra;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableEnderpearlCooldown;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableOffHand;
+import kernitus.plugin.OldCombatMechanics.module.ModuleDisableProjectileRandomness;
+import kernitus.plugin.OldCombatMechanics.module.ModuleFishingKnockback;
+import kernitus.plugin.OldCombatMechanics.module.ModuleFishingRodVelocity;
+import kernitus.plugin.OldCombatMechanics.module.ModuleGoldenApple;
+import kernitus.plugin.OldCombatMechanics.module.ModuleNoLapisEnchantments;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldArmourDurability;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldArmourStrength;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldBrewingStand;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldBurnDelay;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldCriticalHits;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldPotionEffects;
+import kernitus.plugin.OldCombatMechanics.module.ModuleOldToolDamage;
+import kernitus.plugin.OldCombatMechanics.module.ModulePlayerCollisions;
+import kernitus.plugin.OldCombatMechanics.module.ModulePlayerKnockback;
+import kernitus.plugin.OldCombatMechanics.module.ModulePlayerRegen;
+import kernitus.plugin.OldCombatMechanics.module.ModuleProjectileKnockback;
+import kernitus.plugin.OldCombatMechanics.module.ModuleShieldDamageReduction;
+import kernitus.plugin.OldCombatMechanics.module.ModuleSwordBlocking;
+import kernitus.plugin.OldCombatMechanics.module.ModuleSwordSweep;
+import kernitus.plugin.OldCombatMechanics.module.OCMModule;
 import kernitus.plugin.OldCombatMechanics.updater.ModuleUpdateChecker;
 import kernitus.plugin.OldCombatMechanics.utilities.Config;
 import kernitus.plugin.OldCombatMechanics.utilities.Messenger;
@@ -20,6 +47,7 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimpleBarChart;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventException;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -61,7 +89,7 @@ public class OCMMain extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
 
-        PluginDescriptionFile pdfFile = this.getDescription();
+        final PluginDescriptionFile pdfFile = this.getDescription();
 
         // Setting up config.yml
         CH.setupConfigIfNotPresent();
@@ -79,9 +107,12 @@ public class OCMMain extends JavaPlugin {
         hooks.forEach(hook -> hook.init(this));
 
         // Set up the command handler
-        getCommand("OldCombatMechanics").setExecutor(new OCMCommandHandler(this, this.getFile()));
-        // Set up command tab completer
-        getCommand("OldCombatMechanics").setTabCompleter(new OCMCommandCompleter());
+        final OCMCommandHandler commandHandler = new OCMCommandHandler(this);
+        final PluginCommand pluginCommand = getCommand("oldcombatmechanics");
+        if (pluginCommand != null) {
+            pluginCommand.setExecutor(commandHandler);
+            pluginCommand.setTabCompleter(commandHandler);
+        }
 
         // Initialise the Messenger utility
         Messenger.initialise(this);
@@ -90,7 +121,7 @@ public class OCMMain extends JavaPlugin {
         Config.initialise(this);
 
         // BStats Metrics
-        Metrics metrics = new Metrics(this, 53);
+        final Metrics metrics = new Metrics(this, 53);
 
         // Simple bar chart
         metrics.addCustomChart(
@@ -111,19 +142,19 @@ public class OCMMain extends JavaPlugin {
         enableListeners.forEach(Runnable::run);
 
         // Properly handle Plugman load/unload.
-        List<RegisteredListener> joinListeners = Arrays.stream(PlayerJoinEvent.getHandlerList().getRegisteredListeners())
+        final List<RegisteredListener> joinListeners = Arrays.stream(PlayerJoinEvent.getHandlerList().getRegisteredListeners())
                 .filter(registeredListener -> registeredListener.getPlugin().equals(this))
-                .collect(Collectors.toList());
+                .toList();
 
         Bukkit.getOnlinePlayers().forEach(player -> {
-            PlayerJoinEvent event = new PlayerJoinEvent(player, "");
+            final PlayerJoinEvent event = new PlayerJoinEvent(player, "");
 
             // Trick all the modules into thinking the player just joined in case the plugin was loaded with Plugman.
             // This way attack speeds, item modifications, etc. will be applied immediately instead of after a re-log.
             joinListeners.forEach(registeredListener -> {
                 try {
                     registeredListener.callEvent(event);
-                } catch (EventException e) {
+                } catch (final EventException e) {
                     e.printStackTrace();
                 }
             });
@@ -149,19 +180,19 @@ public class OCMMain extends JavaPlugin {
         disableListeners.forEach(Runnable::run);
 
         // Properly handle Plugman load/unload.
-        List<RegisteredListener> quitListeners = Arrays.stream(PlayerQuitEvent.getHandlerList().getRegisteredListeners())
+        final List<RegisteredListener> quitListeners = Arrays.stream(PlayerQuitEvent.getHandlerList().getRegisteredListeners())
                 .filter(registeredListener -> registeredListener.getPlugin().equals(this))
-                .collect(Collectors.toList());
+                .toList();
 
         // Trick all the modules into thinking the player just quit in case the plugin was unloaded with Plugman.
         // This way attack speeds, item modifications, etc. will be restored immediately instead of after a disconnect.
         Bukkit.getOnlinePlayers().forEach(player -> {
-            PlayerQuitEvent event = new PlayerQuitEvent(player, "");
+            final PlayerQuitEvent event = new PlayerQuitEvent(player, "");
 
             quitListeners.forEach(registeredListener -> {
                 try {
                     registeredListener.callEvent(event);
-                } catch (EventException e) {
+                } catch (final EventException e) {
                     e.printStackTrace();
                 }
             });
@@ -245,7 +276,7 @@ public class OCMMain extends JavaPlugin {
      *
      * @param action the {@link Runnable} to run when the plugin gets disabled
      */
-    public void addDisableListener(Runnable action) {
+    public void addDisableListener(final Runnable action) {
         disableListeners.add(action);
     }
 
@@ -254,7 +285,7 @@ public class OCMMain extends JavaPlugin {
      *
      * @param action the {@link Runnable} to run when the plugin gets enabled
      */
-    public void addEnableListener(Runnable action) {
+    public void addEnableListener(final Runnable action) {
         enableListeners.add(action);
     }
 
