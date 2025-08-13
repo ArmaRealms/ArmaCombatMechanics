@@ -8,6 +8,7 @@ package kernitus.plugin.OldCombatMechanics.module;
 import kernitus.plugin.OldCombatMechanics.OCMMain;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -21,12 +22,12 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ModuleChorusFruit extends OCMModule {
 
-    public ModuleChorusFruit(OCMMain plugin) {
+    public ModuleChorusFruit(final OCMMain plugin) {
         super(plugin, "chorus-fruit");
     }
 
     @EventHandler
-    public void onEat(PlayerItemConsumeEvent e) {
+    public void onEat(final PlayerItemConsumeEvent e) {
         if (e.getItem().getType() != Material.CHORUS_FRUIT) return;
         final Player player = e.getPlayer();
 
@@ -59,7 +60,7 @@ public class ModuleChorusFruit extends OCMModule {
     }
 
     @EventHandler
-    public void onTeleport(PlayerTeleportEvent e) {
+    public void onTeleport(final PlayerTeleportEvent e) {
         if (e.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) return;
 
         final Player player = e.getPlayer();
@@ -79,10 +80,16 @@ public class ModuleChorusFruit extends OCMModule {
         }
 
         // Not sure when this can occur, but it is marked as @Nullable
-        Location toLocation = e.getTo();
+        final Location toLocation = e.getTo();
 
         if (toLocation == null) {
             debug("Teleport target is null", player);
+            return;
+        }
+
+        final World world = toLocation.getWorld();
+        if (world == null) {
+            debug("Teleport target world is null", player);
             return;
         }
 
@@ -90,13 +97,13 @@ public class ModuleChorusFruit extends OCMModule {
 
         e.setTo(player.getLocation().add(
                 ThreadLocalRandom.current().nextDouble(-distance, distance),
-                clamp(ThreadLocalRandom.current().nextDouble(-distance, distance), 0, maxheight - 1),
+                clamp(ThreadLocalRandom.current().nextDouble(-distance, distance), maxheight - 1),
                 ThreadLocalRandom.current().nextDouble(-distance, distance)
         ));
     }
 
-    private double clamp(double x, double min, double max) {
-        return Math.max(Math.min(x, max), min);
+    private double clamp(final double x, final double max) {
+        return Math.max(Math.min(x, max), 0);
     }
 
     private double getMaxTeleportationDistance() {

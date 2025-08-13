@@ -32,7 +32,7 @@ public class ModuleDisableOffHand extends OCMModule {
     private static final int OFFHAND_SLOT = 40;
     private List<Material> materials = new ArrayList<>();
 
-    public ModuleDisableOffHand(OCMMain plugin) {
+    public ModuleDisableOffHand(final OCMMain plugin) {
         super(plugin, "disable-offhand");
     }
 
@@ -42,14 +42,14 @@ public class ModuleDisableOffHand extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onSwapHandItems(PlayerSwapHandItemsEvent e) {
+    public void onSwapHandItems(final PlayerSwapHandItemsEvent e) {
         if (isEnabled(e.getPlayer().getWorld()) && shouldWeCancel(e.getOffHandItem())) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryClick(InventoryClickEvent e) {
+    public void onInventoryClick(final InventoryClickEvent e) {
         if (!isEnabled(e.getWhoClicked().getWorld())) return;
         final ClickType clickType = e.getClick();
 
@@ -58,7 +58,7 @@ public class ModuleDisableOffHand extends OCMModule {
                 e.setResult(Event.Result.DENY);
                 return;
             }
-        } catch (NoSuchFieldError ignored) {
+        } catch (final NoSuchFieldError ignored) {
         } // For versions below 1.16
 
         final Inventory clickedInventory = e.getClickedInventory();
@@ -83,7 +83,7 @@ public class ModuleDisableOffHand extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryDrag(InventoryDragEvent e) {
+    public void onInventoryDrag(final InventoryDragEvent e) {
         if (!isEnabled(e.getWhoClicked().getWorld())
                 || e.getInventory().getType() != InventoryType.CRAFTING
                 || !e.getInventorySlots().contains(OFFHAND_SLOT)) return;
@@ -93,7 +93,7 @@ public class ModuleDisableOffHand extends OCMModule {
         }
     }
 
-    private boolean shouldWeCancel(ItemStack item) {
+    private boolean shouldWeCancel(final ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return false;
         }
@@ -109,9 +109,9 @@ public class ModuleDisableOffHand extends OCMModule {
         WHITELIST(Collection::contains),
         BLACKLIST(not(Collection::contains));
 
-        private BiPredicate<Collection<Material>, Material> filter;
+        private final BiPredicate<Collection<Material>, Material> filter;
 
-        BlockType(BiPredicate<Collection<Material>, Material> filter) {
+        BlockType(final BiPredicate<Collection<Material>, Material> filter) {
             this.filter = filter;
         }
 
@@ -122,12 +122,12 @@ public class ModuleDisableOffHand extends OCMModule {
          * @param toCheck the material to check
          * @return true if the item is allowed, based on the list and the current mode
          */
-        boolean isAllowed(Collection<Material> list, Material toCheck) {
+        boolean isAllowed(final Collection<Material> list, final Material toCheck) {
             return filter.test(list, toCheck);
         }
     }
 
-    private static <T, U> BiPredicate<T, U> not(BiPredicate<T, U> predicate) {
+    private static <T, U> BiPredicate<T, U> not(final BiPredicate<T, U> predicate) {
         return predicate.negate();
     }
 }

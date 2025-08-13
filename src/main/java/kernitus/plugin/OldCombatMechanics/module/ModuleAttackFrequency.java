@@ -25,7 +25,7 @@ public class ModuleAttackFrequency extends OCMModule {
     private static final int DEFAULT_DELAY = 20;
     private static int playerDelay, mobDelay;
 
-    public ModuleAttackFrequency(OCMMain plugin) {
+    public ModuleAttackFrequency(final OCMMain plugin) {
         super(plugin, "attack-frequency");
         module().getInt("delay");
     }
@@ -42,48 +42,47 @@ public class ModuleAttackFrequency extends OCMModule {
     }
 
     @EventHandler
-    public void onPlayerLogin(PlayerJoinEvent e) {
+    public void onPlayerLogin(final PlayerJoinEvent e) {
         final Player player = e.getPlayer();
         final World world = player.getWorld();
         if (isEnabled(world)) setDelay(player, playerDelay);
     }
 
     @EventHandler
-    public void onPlayerLogout(PlayerQuitEvent e) {
+    public void onPlayerLogout(final PlayerQuitEvent e) {
         setDelay(e.getPlayer(), DEFAULT_DELAY);
     }
 
     @EventHandler
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent e) {
+    public void onPlayerChangeWorld(final PlayerChangedWorldEvent e) {
         final Player player = e.getPlayer();
         final World world = player.getWorld();
         setDelay(player, isEnabled(world) ? playerDelay : DEFAULT_DELAY);
     }
 
     @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent e) {
+    public void onPlayerRespawn(final PlayerRespawnEvent e) {
         final Player player = e.getPlayer();
         final World world = player.getWorld();
         setDelay(player, isEnabled(world) ? playerDelay : DEFAULT_DELAY);
     }
 
-    private void setDelay(Player player, int delay) {
+    private void setDelay(final Player player, final int delay) {
         player.setMaximumNoDamageTicks(delay);
         debug("Set hit delay to " + delay, player);
     }
 
     @EventHandler
-    public void onCreatureSpawn(CreatureSpawnEvent e) {
+    public void onCreatureSpawn(final CreatureSpawnEvent e) {
         final LivingEntity livingEntity = e.getEntity();
         final World world = livingEntity.getWorld();
         if (isEnabled(world)) livingEntity.setMaximumNoDamageTicks(mobDelay);
     }
 
     @EventHandler
-    public void onEntityTeleportEvent(EntityTeleportEvent e) {
+    public void onEntityTeleportEvent(final EntityTeleportEvent e) {
         final Entity entity = e.getEntity();
-        if (!(entity instanceof LivingEntity)) return;
-        final LivingEntity livingEntity = (LivingEntity) entity;
+        if (!(entity instanceof final LivingEntity livingEntity)) return;
 
         final World fromWorld = e.getFrom().getWorld();
         final World toWorld = e.getTo().getWorld();

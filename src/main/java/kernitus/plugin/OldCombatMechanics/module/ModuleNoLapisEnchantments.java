@@ -23,16 +23,16 @@ import org.bukkit.permissions.Permissible;
  */
 public class ModuleNoLapisEnchantments extends OCMModule {
 
-    private VersionedMaterial lapisLazuli;
+    private final VersionedMaterial lapisLazuli;
 
-    public ModuleNoLapisEnchantments(OCMMain plugin) {
+    public ModuleNoLapisEnchantments(final OCMMain plugin) {
         super(plugin, "no-lapis-enchantments");
 
         lapisLazuli = MaterialRegistry.LAPIS_LAZULI;
     }
 
     @EventHandler
-    public void onEnchant(EnchantItemEvent e) {
+    public void onEnchant(final EnchantItemEvent e) {
         final Block block = e.getEnchantBlock();
         if (!isEnabled(block.getWorld())) return;
 
@@ -43,7 +43,7 @@ public class ModuleNoLapisEnchantments extends OCMModule {
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent e) {
+    public void onInventoryClick(final InventoryClickEvent e) {
         if (!isEnabled(e.getWhoClicked().getWorld())) return;
 
         if (e.getInventory().getType() != InventoryType.ENCHANTING) return;
@@ -63,7 +63,7 @@ public class ModuleNoLapisEnchantments extends OCMModule {
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
+    public void onInventoryClose(final InventoryCloseEvent e) {
         if (!isEnabled(e.getPlayer().getWorld())) return;
 
         final Inventory inventory = e.getInventory();
@@ -74,11 +74,11 @@ public class ModuleNoLapisEnchantments extends OCMModule {
     }
 
     @EventHandler
-    public void onInventoryOpen(InventoryOpenEvent e) {
+    public void onInventoryOpen(final InventoryOpenEvent e) {
         fillUpEnchantingTable(e.getPlayer(), e.getInventory());
     }
 
-    private void fillUpEnchantingTable(HumanEntity player, Inventory inventory) {
+    private void fillUpEnchantingTable(final HumanEntity player, final Inventory inventory) {
         if (!isEnabled(player.getWorld())) return;
 
         if (inventory == null || inventory.getType() != InventoryType.ENCHANTING || hasNoPermission(player)) return;
@@ -91,7 +91,7 @@ public class ModuleNoLapisEnchantments extends OCMModule {
         return lapis;
     }
 
-    private boolean hasNoPermission(Permissible player) {
+    private boolean hasNoPermission(final Permissible player) {
         return isSettingEnabled("usePermission") && !player.hasPermission("oldcombatmechanics.nolapis");
     }
 }

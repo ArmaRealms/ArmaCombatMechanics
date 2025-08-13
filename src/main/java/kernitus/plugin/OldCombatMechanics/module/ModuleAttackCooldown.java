@@ -119,7 +119,7 @@ public class ModuleAttackCooldown extends OCMModule {
         }
 
         /**
-         * The {@link Attribute#GENERIC_ATTACK_SPEED} base value.
+         * The {@link Attribute#ATTACK_SPEED} base value.
          * <p>
          * The value might be an approximation, if the attribute does not exist in the PVP mode.
          *

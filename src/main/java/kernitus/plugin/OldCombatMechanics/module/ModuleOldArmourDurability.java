@@ -48,7 +48,7 @@ public class ModuleOldArmourDurability extends OCMModule {
             final List<ItemStack> armour = explosionDamaged.get(uuid);
             // ItemStack.equals() checks material, durability and quantity to make sure nothing changed in the meantime
             // We're checking all the pieces this way just in case they're wearing two helmets or something strange
-            final List<ItemStack> matchedPieces = armour.stream().filter(piece -> piece.equals(item)).collect(Collectors.toList());
+            final List<ItemStack> matchedPieces = armour.stream().filter(piece -> piece.equals(item)).toList();
             armour.removeAll(matchedPieces);
             debug("Item matched explosion, ignoring...", player);
             if (!matchedPieces.isEmpty()) return;

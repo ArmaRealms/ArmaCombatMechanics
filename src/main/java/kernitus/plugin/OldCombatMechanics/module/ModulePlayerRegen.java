@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
@@ -64,7 +65,7 @@ public class ModulePlayerRegen extends OCMModule {
             return;
         }
 
-        final double maxHealth = p.getAttribute(Attribute.MAX_HEALTH).getValue();
+        final double maxHealth = Objects.requireNonNull(p.getAttribute(Attribute.MAX_HEALTH)).getValue();
         final double playerHealth = p.getHealth();
 
         if (playerHealth < maxHealth) {

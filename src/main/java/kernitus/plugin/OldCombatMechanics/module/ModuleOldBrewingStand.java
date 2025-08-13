@@ -22,12 +22,12 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class ModuleOldBrewingStand extends OCMModule {
 
-    public ModuleOldBrewingStand(OCMMain plugin) {
+    public ModuleOldBrewingStand(final OCMMain plugin) {
         super(plugin, "old-brewing-stand");
     }
 
     @EventHandler
-    public void onBrew(BrewEvent e) {
+    public void onBrew(final BrewEvent e) {
         final Block block = e.getBlock();
 
         if (!isEnabled(block.getWorld())) return;
@@ -42,17 +42,15 @@ public class ModuleOldBrewingStand extends OCMModule {
         } else refuel(block.getState());
     }
 
-    private void refuel(BlockState blockState) {
-        if (!(blockState instanceof BrewingStand)) return;
-
-        final BrewingStand brewingStand = (BrewingStand) blockState;
+    private void refuel(final BlockState blockState) {
+        if (!(blockState instanceof final BrewingStand brewingStand)) return;
 
         brewingStand.setFuelLevel(20);
         brewingStand.update();
     }
 
     @EventHandler
-    public void onInventoryOpen(InventoryOpenEvent e) {
+    public void onInventoryOpen(final InventoryOpenEvent e) {
         if (!isEnabled(e.getPlayer().getWorld())) return;
 
         final Inventory inventory = e.getInventory();

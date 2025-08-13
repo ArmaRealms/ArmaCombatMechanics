@@ -27,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
@@ -81,6 +82,7 @@ public class ModulePlayerKnockback extends OCMModule {
         final Entity entity = event.getEntity();
         if (!(entity instanceof Player) || netheriteKnockbackResistance) return;
         final AttributeInstance attribute = ((Player) entity).getAttribute(Attribute.KNOCKBACK_RESISTANCE);
+        if (attribute == null) return;
         attribute.getModifiers().forEach(attribute::removeModifier);
     }
 
@@ -94,12 +96,10 @@ public class ModulePlayerKnockback extends OCMModule {
         if (!isEnabled(attacker.getWorld())) return;
 
         final Entity damagee = event.getEntity();
-        if (!(damagee instanceof Player)) return;
+        if (!(damagee instanceof final Player victim)) return;
 
         if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) return;
         if (event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING) > 0) return;
-
-        final Player victim = (Player) damagee;
 
         // Figure out base knockback direction
         final Location attackerLocation = attacker.getLocation();
@@ -143,7 +143,7 @@ public class ModulePlayerKnockback extends OCMModule {
 
         if (netheriteKnockbackResistance) {
             // Allow netherite to affect the horizontal knockback. Each piece of armour yields 10% resistance
-            final double resistance = 1 - victim.getAttribute(Attribute.KNOCKBACK_RESISTANCE).getValue();
+            final double resistance = 1 - Objects.requireNonNull(victim.getAttribute(Attribute.KNOCKBACK_RESISTANCE)).getValue();
             playerVelocity.multiply(new Vector(resistance, 1, resistance));
         }
 

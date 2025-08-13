@@ -27,7 +27,7 @@ public class ModuleDisableCrafting extends OCMModule {
     private List<Material> denied;
     private String message;
 
-    public ModuleDisableCrafting(OCMMain plugin) {
+    public ModuleDisableCrafting(final OCMMain plugin) {
         super(plugin, "disable-crafting");
         reload();
     }
@@ -39,11 +39,11 @@ public class ModuleDisableCrafting extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPrepareItemCraft(PrepareItemCraftEvent e) {
+    public void onPrepareItemCraft(final PrepareItemCraftEvent e) {
         final List<HumanEntity> viewers = e.getViewers();
-        if (viewers.size() < 1) return;
+        if (viewers.isEmpty()) return;
 
-        final World world = viewers.get(0).getWorld();
+        final World world = viewers.getFirst().getWorld();
         if (!isEnabled(world)) return;
 
         final CraftingInventory inv = e.getInventory();

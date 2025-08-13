@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -89,7 +90,7 @@ public class ModuleGoldenApple extends OCMModule {
 
     private void registerCrafting() {
         if (isEnabled() && module().getBoolean("enchanted-golden-apple-crafting")) {
-            if (Bukkit.getRecipesFor(ENCHANTED_GOLDEN_APPLE.newInstance()).size() > 0) return;
+            if (!Bukkit.getRecipesFor(ENCHANTED_GOLDEN_APPLE.newInstance()).isEmpty()) return;
             Bukkit.addRecipe(enchantedAppleRecipe);
             debug("Added napple recipe");
         }
@@ -201,10 +202,14 @@ public class ModuleGoldenApple extends OCMModule {
         }
     }
 
-    private List<PotionEffect> getPotionEffects(final String apple) {
+    private @NotNull List<PotionEffect> getPotionEffects(final String apple) {
         final List<PotionEffect> appleEffects = new ArrayList<>();
 
         final ConfigurationSection sect = module().getConfigurationSection(apple + "-effects");
+        if (sect == null) {
+            Messenger.warn("No potion effects defined for " + apple + " in the config!");
+            return appleEffects;
+        }
         for (final String key : sect.getKeys(false)) {
             final int duration = sect.getInt(key + ".duration");
             final int amplifier = sect.getInt(key + ".amplifier");

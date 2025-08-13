@@ -15,9 +15,9 @@ import java.util.List;
 public class ModuleLoader {
 
     private static EventRegistry eventRegistry;
-    private static List<OCMModule> modules = new ArrayList<>();
+    private static final List<OCMModule> modules = new ArrayList<>();
 
-    public static void initialise(OCMMain plugin) {
+    public static void initialise(final OCMMain plugin) {
         ModuleLoader.eventRegistry = new EventRegistry(plugin);
     }
 
@@ -25,7 +25,7 @@ public class ModuleLoader {
         modules.forEach(module -> setState(module, module.isEnabled()));
     }
 
-    private static void setState(OCMModule module, boolean state) {
+    private static void setState(final OCMModule module, final boolean state) {
         if (state) {
             if (eventRegistry.registerListener(module)) {
                 Messenger.debug("Enabled " + module.getClass().getSimpleName());
@@ -37,7 +37,7 @@ public class ModuleLoader {
         }
     }
 
-    public static void addModule(OCMModule module) {
+    public static void addModule(final OCMModule module) {
         modules.add(module);
     }
 

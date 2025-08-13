@@ -28,7 +28,7 @@ public class ModuleShieldDamageReduction extends OCMModule {
     private int genericDamageReductionAmount, genericDamageReductionPercentage, projectileDamageReductionAmount, projectileDamageReductionPercentage;
     private final Map<UUID, List<ItemStack>> fullyBlocked = new WeakHashMap<>();
 
-    public ModuleShieldDamageReduction(OCMMain plugin) {
+    public ModuleShieldDamageReduction(final OCMMain plugin) {
         super(plugin, "shield-damage-reduction");
         reload();
     }
@@ -42,7 +42,7 @@ public class ModuleShieldDamageReduction extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemDamage(PlayerItemDamageEvent e) {
+    public void onItemDamage(final PlayerItemDamageEvent e) {
         final Player player = e.getPlayer();
         if (!isEnabled(player.getWorld())) return;
         final UUID uuid = player.getUniqueId();
@@ -62,12 +62,10 @@ public class ModuleShieldDamageReduction extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onHit(EntityDamageByEntityEvent e) {
+    public void onHit(final EntityDamageByEntityEvent e) {
         final Entity entity = e.getEntity();
 
-        if (!(entity instanceof Player)) return;
-
-        final Player player = (Player) entity;
+        if (!(entity instanceof final Player player)) return;
 
         if (!isEnabled(player.getWorld())) return;
 
@@ -96,7 +94,7 @@ public class ModuleShieldDamageReduction extends OCMModule {
         }
     }
 
-    private double getDamageReduction(double damage, DamageCause damageCause) {
+    private double getDamageReduction(double damage, final DamageCause damageCause) {
         // 1.8 NMS code, where f is damage done: f = (1.0F + f) * 0.5F;
 
         // Reduce by amount
@@ -111,7 +109,7 @@ public class ModuleShieldDamageReduction extends OCMModule {
         return damage;
     }
 
-    private boolean shieldBlockedDamage(double attackDamage, double blockingReduction) {
+    private boolean shieldBlockedDamage(final double attackDamage, final double blockingReduction) {
         // Only reduce damage if they were hit head on, i.e. the shield blocked some of the damage
         // This also takes into account damages that are not blocked by shields
         return attackDamage > 0 && blockingReduction < 0;

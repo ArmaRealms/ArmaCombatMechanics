@@ -18,26 +18,21 @@ import org.bukkit.projectiles.ProjectileSource;
  */
 public class ModuleDisableBowBoost extends OCMModule {
 
-    public ModuleDisableBowBoost(OCMMain plugin) {
+    public ModuleDisableBowBoost(final OCMMain plugin) {
         super(plugin, "disable-bow-boost");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onProjectileHit(EntityDamageByEntityEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-
-        final Player player = (Player) e.getEntity();
+    public void onProjectileHit(final EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof final Player player)) return;
 
         if (!isEnabled(player.getWorld())) return;
 
-        if (!(e.getDamager() instanceof Arrow)) return;
-
-        final Arrow arrow = (Arrow) e.getDamager();
+        if (!(e.getDamager() instanceof final Arrow arrow)) return;
 
         final ProjectileSource shooter = arrow.getShooter();
 
-        if (shooter instanceof Player) {
-            final Player shootingPlayer = (Player) shooter;
+        if (shooter instanceof final Player shootingPlayer) {
             if (player.getUniqueId().equals(shootingPlayer.getUniqueId())) {
                 e.setCancelled(true);
                 debug("We cancelled your bow boost", player);

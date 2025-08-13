@@ -26,17 +26,15 @@ import java.util.stream.Collectors;
 public class ModuleOldArmourStrength extends OCMModule {
 // Defence order is armour defence points -> resistance -> armour enchants -> absorption
 
-    public ModuleOldArmourStrength(OCMMain plugin) {
+    public ModuleOldArmourStrength(final OCMMain plugin) {
         super(plugin, "old-armour-strength");
     }
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onEntityDamage(EntityDamageEvent e) {
+    public void onEntityDamage(final EntityDamageEvent e) {
         // 1.8 NMS: Damage = 25 / (damage after blocking * (25 - total armour strength))
-        if (!(e.getEntity() instanceof LivingEntity)) return;
-
-        final LivingEntity damagedEntity = (LivingEntity) e.getEntity();
+        if (!(e.getEntity() instanceof final LivingEntity damagedEntity)) return;
 
         final Map<EntityDamageEvent.DamageModifier, Double> damageModifiers =
                 Arrays.stream(EntityDamageEvent.DamageModifier.values())

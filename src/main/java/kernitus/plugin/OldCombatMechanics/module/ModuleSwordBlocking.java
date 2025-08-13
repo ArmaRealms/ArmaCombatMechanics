@@ -36,7 +36,7 @@ public class ModuleSwordBlocking extends OCMModule {
     private boolean blacklist;
     private List<Material> noBlockingItems = new ArrayList<>();
 
-    public ModuleSwordBlocking(OCMMain plugin) {
+    public ModuleSwordBlocking(final OCMMain plugin) {
         super(plugin, "sword-blocking");
     }
 
@@ -48,7 +48,7 @@ public class ModuleSwordBlocking extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onRightClick(PlayerInteractEvent e) {
+    public void onRightClick(final PlayerInteractEvent e) {
         final Action action = e.getAction();
         if(action != Action.RIGHT_CLICK_BLOCK && action != Action.RIGHT_CLICK_AIR) return;
         // If they clicked on an interactive block, the 2nd event with the offhand won't fire
@@ -86,22 +86,22 @@ public class ModuleSwordBlocking extends OCMModule {
     }
 
     @EventHandler
-    public void onHotBarChange(PlayerItemHeldEvent e) {
+    public void onHotBarChange(final PlayerItemHeldEvent e) {
         restore(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onWorldChange(PlayerChangedWorldEvent e) {
+    public void onWorldChange(final PlayerChangedWorldEvent e) {
         restore(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerLogout(PlayerQuitEvent e) {
+    public void onPlayerLogout(final PlayerQuitEvent e) {
         restore(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerDeath(PlayerDeathEvent e) {
+    public void onPlayerDeath(final PlayerDeathEvent e) {
         final Player p = e.getEntity();
         final UUID id = p.getUniqueId();
         if (!areItemsStored(id)) return;
@@ -118,31 +118,30 @@ public class ModuleSwordBlocking extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent e) {
+    public void onPlayerSwapHandItems(final PlayerSwapHandItemsEvent e) {
         final Player p = e.getPlayer();
         if (areItemsStored(p.getUniqueId()))
             e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getWhoClicked() instanceof Player) {
-            final Player p = (Player) e.getWhoClicked();
+    public void onInventoryClick(final InventoryClickEvent e) {
+        if (e.getWhoClicked() instanceof final Player player) {
 
-            if (areItemsStored(p.getUniqueId())) {
+            if (areItemsStored(player.getUniqueId())) {
                 final ItemStack cursor = e.getCursor();
                 final ItemStack current = e.getCurrentItem();
                 if (cursor != null && cursor.getType() == Material.SHIELD ||
                         current != null && current.getType() == Material.SHIELD) {
                     e.setCancelled(true);
-                    restore(p);
+                    restore(player);
                 }
             }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onItemDrop(PlayerDropItemEvent e) {
+    public void onItemDrop(final PlayerDropItemEvent e) {
         final Item is = e.getItemDrop();
         final Player p = e.getPlayer();
 
@@ -152,7 +151,7 @@ public class ModuleSwordBlocking extends OCMModule {
         }
     }
 
-    private void restore(Player p) {
+    private void restore(final Player p) {
         final UUID id = p.getUniqueId();
 
         tryCancelTask(id);
@@ -168,16 +167,16 @@ public class ModuleSwordBlocking extends OCMModule {
         }
     }
 
-    private void tryCancelTask(UUID id) {
+    private void tryCancelTask(final UUID id) {
         Optional.ofNullable(correspondingTasks.remove(id))
                 .ifPresent(RunnableSeries::cancelAll);
     }
 
-    private void scheduleRestore(Player p) {
+    private void scheduleRestore(final Player p) {
         final UUID id = p.getUniqueId();
         tryCancelTask(id);
 
-        BukkitRunnable removeItem = new BukkitRunnable() {
+        final BukkitRunnable removeItem = new BukkitRunnable() {
             @Override
             public void run() {
                 restore(p);
@@ -185,7 +184,7 @@ public class ModuleSwordBlocking extends OCMModule {
         };
         removeItem.runTaskLater(plugin, restoreDelay);
 
-        BukkitRunnable checkBlocking = new BukkitRunnable() {
+        final BukkitRunnable checkBlocking = new BukkitRunnable() {
             @Override
             public void run() {
                 if (!isPlayerBlocking(p))
@@ -197,25 +196,25 @@ public class ModuleSwordBlocking extends OCMModule {
         correspondingTasks.put(p.getUniqueId(), new RunnableSeries(removeItem, checkBlocking));
     }
 
-    private boolean areItemsStored(UUID uuid) {
+    private boolean areItemsStored(final UUID uuid) {
         return storedOffhandItems.containsKey(uuid);
     }
 
     /**
      * Checks whether player is blocking or they have just begun to and shield is not fully up yet.
      */
-    private boolean isPlayerBlocking(Player player) {
+    private boolean isPlayerBlocking(final Player player) {
         return player.isBlocking() ||
                 (Reflector.versionIsNewerOrEqualAs(1,11,0) && player.isHandRaised()
                         && player.getInventory().getItemInOffHand().getType() == Material.SHIELD
                 );
     }
 
-    private boolean hasShield(Player p) {
+    private boolean hasShield(final Player p) {
         return p.getInventory().getItemInOffHand().getType() == Material.SHIELD;
     }
 
-    private boolean isHoldingSword(Material mat) {
+    private boolean isHoldingSword(final Material mat) {
         return mat.toString().endsWith("_SWORD");
     }
 }

@@ -67,7 +67,7 @@ public class ModuleFishingKnockback extends OCMModule {
         final Entity hitEntity = getHitEntityFunction.apply(e);
 
         if (hitEntity == null) return;  // If no entity was hit
-        if (!(hitEntity instanceof LivingEntity)) return;
+        if (!(hitEntity instanceof final LivingEntity livingEntity)) return;
         if (!knockbackNonPlayerEntities && !(hitEntity instanceof Player)) return;
 
         // Do not move Citizens NPCs
@@ -86,8 +86,6 @@ public class ModuleFishingKnockback extends OCMModule {
 
             if (player.getGameMode() == GameMode.CREATIVE) return;
         }
-
-        final LivingEntity livingEntity = (LivingEntity) hitEntity;
 
         // Check if cooldown time has elapsed
         if (livingEntity.getNoDamageTicks() > livingEntity.getMaximumNoDamageTicks() / 2f) return;

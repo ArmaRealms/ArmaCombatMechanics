@@ -31,14 +31,13 @@ public class ModuleDisableElytra extends OCMModule {
     private static final int CHEST_SLOT = 38;
     private static final int OFFHAND_SLOT = 40;
 
-    public ModuleDisableElytra(OCMMain plugin) {
+    public ModuleDisableElytra(final OCMMain plugin) {
         super(plugin, "disable-elytra");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (!(e.getWhoClicked() instanceof Player)) return;
-        final Player player = (Player) e.getWhoClicked();
+    public void onInventoryClick(final InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof final Player player)) return;
 
         if (!isEnabled(player.getWorld()) || player.getGameMode() == GameMode.CREATIVE) return;
 
@@ -66,16 +65,16 @@ public class ModuleDisableElytra extends OCMModule {
                     || (clickType == ClickType.SWAP_OFFHAND && slot == CHEST_SLOT && isElytra(inv.getItem(OFFHAND_SLOT)))
             )
                 e.setCancelled(true);
-        } catch (NoSuchFieldError ignored) {
+        } catch (final NoSuchFieldError ignored) {
         } // For versions below 1.16 where you couldn't use F to swap offhand in inventory
     }
 
-    private boolean isElytra(ItemStack item) {
+    private boolean isElytra(final ItemStack item) {
         return item != null && item.getType() == Material.ELYTRA;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onRightClick(PlayerInteractEvent e) {
+    public void onRightClick(final PlayerInteractEvent e) {
         if (!isEnabled(e.getPlayer().getWorld())) return;
 
         // Must not be able to right click while holding an elytra to wear it
@@ -88,7 +87,7 @@ public class ModuleDisableElytra extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onDrag(InventoryDragEvent e) {
+    public void onDrag(final InventoryDragEvent e) {
         if (!isEnabled(e.getWhoClicked().getWorld())) return;
 
         final ItemStack oldCursor = e.getOldCursor();
@@ -98,7 +97,7 @@ public class ModuleDisableElytra extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onWorldChange(PlayerChangedWorldEvent e) {
+    public void onWorldChange(final PlayerChangedWorldEvent e) {
         final Player player = e.getPlayer();
         final World world = player.getWorld();
         if (!isEnabled(world)) return;

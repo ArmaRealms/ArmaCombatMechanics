@@ -36,7 +36,7 @@ public class ModuleDisableEnderpearlCooldown extends OCMModule {
     private int cooldown;
     private String message;
 
-    public ModuleDisableEnderpearlCooldown(OCMMain plugin) {
+    public ModuleDisableEnderpearlCooldown(final OCMMain plugin) {
         super(plugin, "disable-enderpearl-cooldown");
         reload();
     }
@@ -51,15 +51,14 @@ public class ModuleDisableEnderpearlCooldown extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerShoot(ProjectileLaunchEvent e) {
+    public void onPlayerShoot(final ProjectileLaunchEvent e) {
         if (e.isCancelled()) return; // For compatibility with other plugins
 
         final Projectile projectile = e.getEntity();
         if (!(projectile instanceof EnderPearl)) return;
         final ProjectileSource shooter = projectile.getShooter();
 
-        if (!(shooter instanceof Player)) return;
-        final Player player = (Player) shooter;
+        if (!(shooter instanceof final Player player)) return;
 
         if (!isEnabled(player.getWorld())) return;
 
@@ -104,12 +103,12 @@ public class ModuleDisableEnderpearlCooldown extends OCMModule {
         enderpearlItemStack.setAmount(enderpearlItemStack.getAmount() - 1);
     }
 
-    private boolean isEnderPearl(ItemStack itemStack) {
+    private boolean isEnderPearl(final ItemStack itemStack) {
         return itemStack != null && itemStack.getType() == Material.ENDER_PEARL;
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e) {
+    public void onPlayerQuit(final PlayerQuitEvent e) {
         if (lastLaunched != null) lastLaunched.remove(e.getPlayer().getUniqueId());
     }
 }

@@ -22,7 +22,7 @@ public class ModuleDisableProjectileRandomness extends OCMModule {
     private static double EPSILON;
     // Method was added in 1.14.0
     private static final SpigotFunctionChooser<Vector, Double, Vector> rotateAroundY = SpigotFunctionChooser.apiCompatCall(
-            (vector, angle) -> vector.rotateAroundY(angle),
+            Vector::rotateAroundY,
             (vector, angle) -> {
                 double angleCos = Math.cos(angle);
                 double angleSin = Math.sin(angle);
@@ -33,7 +33,7 @@ public class ModuleDisableProjectileRandomness extends OCMModule {
             }
     );
 
-    public ModuleDisableProjectileRandomness(OCMMain plugin) {
+    public ModuleDisableProjectileRandomness(final OCMMain plugin) {
         super(plugin, "disable-projectile-randomness");
         reload();
     }
@@ -44,12 +44,11 @@ public class ModuleDisableProjectileRandomness extends OCMModule {
     }
 
     @EventHandler
-    public void onProjectileLaunch(ProjectileLaunchEvent e) {
+    public void onProjectileLaunch(final ProjectileLaunchEvent e) {
         final Projectile projectile = e.getEntity();
         final ProjectileSource shooter = projectile.getShooter();
 
-        if (shooter instanceof Player) {
-            final Player player = (Player) shooter;
+        if (shooter instanceof final Player player) {
             if (!isEnabled(player.getWorld())) return;
             debug("Making projectile go straight", player);
 
@@ -76,7 +75,7 @@ public class ModuleDisableProjectileRandomness extends OCMModule {
         }
     }
 
-    private boolean fuzzyVectorEquals(Vector a, Vector b) {
+    private boolean fuzzyVectorEquals(final Vector a, final Vector b) {
         return Math.abs(a.getX() - b.getX()) < EPSILON &&
                 Math.abs(a.getZ() - b.getZ()) < EPSILON;
     }
