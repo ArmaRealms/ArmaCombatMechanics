@@ -33,7 +33,7 @@ public class ModuleFishingKnockback extends OCMModule {
     private final SpigotFunctionChooser<ProjectileHitEvent, Object, Entity> getHitEntityFunction;
     private boolean knockbackNonPlayerEntities;
 
-    public ModuleFishingKnockback(OCMMain plugin) {
+    public ModuleFishingKnockback(final OCMMain plugin) {
         super(plugin, "old-fishing-knockback");
 
         reload();
@@ -56,13 +56,13 @@ public class ModuleFishingKnockback extends OCMModule {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onRodLand(ProjectileHitEvent e) {
+    public void onRodLand(final ProjectileHitEvent e) {
         final Entity hookEntity = e.getEntity();
         final World world = hookEntity.getWorld();
 
         if (!isEnabled(world)) return;
 
-        if (e.getEntityType() != EntityType.FISHING_HOOK) return;
+        if (e.getEntityType() != EntityType.FISHING_BOBBER) return;
 
         final Entity hitEntity = getHitEntityFunction.apply(e);
 
@@ -107,7 +107,7 @@ public class ModuleFishingKnockback extends OCMModule {
         livingEntity.setVelocity(calculateKnockbackVelocity(livingEntity.getVelocity(), livingEntity.getLocation(), hook.getLocation()));
     }
 
-    private Vector calculateKnockbackVelocity(Vector currentVelocity, Location player, Location hook) {
+    private Vector calculateKnockbackVelocity(final Vector currentVelocity, final Location player, final Location hook) {
         double xDistance = hook.getX() - player.getX();
         double zDistance = hook.getZ() - player.getZ();
 
@@ -143,7 +143,7 @@ public class ModuleFishingKnockback extends OCMModule {
      * This is to cancel dragging the entity closer when you reel in
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    private void onReelIn(PlayerFishEvent e) {
+    private void onReelIn(final PlayerFishEvent e) {
         if (e.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) return;
 
         final String cancelDraggingIn = module().getString("cancelDraggingIn", "players");
@@ -157,7 +157,7 @@ public class ModuleFishingKnockback extends OCMModule {
     }
 
     @SuppressWarnings({"deprecation"})
-    private EntityDamageEvent makeEvent(Player rodder, Entity entity, double damage) {
+    private EntityDamageEvent makeEvent(final Player rodder, final Entity entity, final double damage) {
         if (module().getBoolean("useEntityDamageEvent"))
             return new EntityDamageEvent(entity,
                     EntityDamageEvent.DamageCause.PROJECTILE,

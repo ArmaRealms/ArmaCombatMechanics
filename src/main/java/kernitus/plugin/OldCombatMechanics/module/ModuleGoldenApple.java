@@ -42,7 +42,7 @@ public class ModuleGoldenApple extends OCMModule {
             PotionEffectType.REGENERATION);
     // Napple: absorption IV, regen II, fire resistance I, resistance I
     private static final Set<PotionEffectType> nappleEffects = ImmutableSet.of(PotionEffectType.ABSORPTION,
-            PotionEffectType.REGENERATION, PotionEffectType.FIRE_RESISTANCE, PotionEffectType.DAMAGE_RESISTANCE);
+            PotionEffectType.REGENERATION, PotionEffectType.FIRE_RESISTANCE, PotionEffectType.RESISTANCE);
     private List<PotionEffect> enchantedGoldenAppleEffects, goldenAppleEffects;
     private ShapedRecipe enchantedAppleRecipe;
 
@@ -51,7 +51,7 @@ public class ModuleGoldenApple extends OCMModule {
 
     private String normalCooldownMessage, enchantedCooldownMessage;
 
-    public ModuleGoldenApple(OCMMain plugin) {
+    public ModuleGoldenApple(final OCMMain plugin) {
         super(plugin, "old-golden-apples");
     }
 
@@ -76,7 +76,7 @@ public class ModuleGoldenApple extends OCMModule {
                     new NamespacedKey(plugin, "MINECRAFT"),
                     ENCHANTED_GOLDEN_APPLE.newInstance()
             );
-        } catch (NoClassDefFoundError e) {
+        } catch (final NoClassDefFoundError e) {
             enchantedAppleRecipe = new ShapedRecipe(ENCHANTED_GOLDEN_APPLE.newInstance());
         }
         enchantedAppleRecipe
@@ -96,7 +96,7 @@ public class ModuleGoldenApple extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onPrepareItemCraft(PrepareItemCraftEvent e) {
+    public void onPrepareItemCraft(final PrepareItemCraftEvent e) {
         final ItemStack item = e.getInventory().getResult();
         if (item == null)
             return; // This should never ever ever ever run. If it does then you probably screwed something up.
@@ -112,7 +112,7 @@ public class ModuleGoldenApple extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onItemConsume(PlayerItemConsumeEvent e) {
+    public void onItemConsume(final PlayerItemConsumeEvent e) {
         final Player player = e.getPlayer();
 
         if (!isEnabled(player.getWorld())) return;
@@ -184,8 +184,8 @@ public class ModuleGoldenApple extends OCMModule {
         }, 1L);
     }
 
-    private void applyEffects(LivingEntity target, List<PotionEffect> effects) {
-        for (PotionEffect effect : effects) {
+    private void applyEffects(final LivingEntity target, final List<PotionEffect> effects) {
+        for (final PotionEffect effect : effects) {
             final OptionalInt maxActiveAmplifier = target.getActivePotionEffects().stream()
                     .filter(potionEffect -> potionEffect.getType() == effect.getType())
                     .mapToInt(PotionEffect::getAmplifier)
@@ -201,11 +201,11 @@ public class ModuleGoldenApple extends OCMModule {
         }
     }
 
-    private List<PotionEffect> getPotionEffects(String apple) {
+    private List<PotionEffect> getPotionEffects(final String apple) {
         final List<PotionEffect> appleEffects = new ArrayList<>();
 
         final ConfigurationSection sect = module().getConfigurationSection(apple + "-effects");
-        for (String key : sect.getKeys(false)) {
+        for (final String key : sect.getKeys(false)) {
             final int duration = sect.getInt(key + ".duration");
             final int amplifier = sect.getInt(key + ".amplifier");
 
@@ -219,7 +219,7 @@ public class ModuleGoldenApple extends OCMModule {
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e) {
+    public void onPlayerQuit(final PlayerQuitEvent e) {
         final UUID uuid = e.getPlayer().getUniqueId();
         if (lastEaten != null) lastEaten.remove(uuid);
     }
@@ -228,7 +228,7 @@ public class ModuleGoldenApple extends OCMModule {
         private Instant lastNormalEaten;
         private Instant lastEnchantedEaten;
 
-        private Optional<Instant> getForItem(ItemStack item) {
+        private Optional<Instant> getForItem(final ItemStack item) {
             return ENCHANTED_GOLDEN_APPLE.isSame(item)
                     ? Optional.ofNullable(lastEnchantedEaten)
                     : Optional.ofNullable(lastNormalEaten);
@@ -246,7 +246,7 @@ public class ModuleGoldenApple extends OCMModule {
             );
         }
 
-        private void setForItem(ItemStack item) {
+        private void setForItem(final ItemStack item) {
             if (ENCHANTED_GOLDEN_APPLE.isSame(item)) {
                 lastEnchantedEaten = Instant.now();
             } else {
@@ -260,17 +260,17 @@ public class ModuleGoldenApple extends OCMModule {
         private final long enchanted;
         private final boolean sharedCooldown;
 
-        Cooldown(long normal, long enchanted, boolean sharedCooldown) {
+        Cooldown(final long normal, final long enchanted, final boolean sharedCooldown) {
             this.normal = normal;
             this.enchanted = enchanted;
             this.sharedCooldown = sharedCooldown;
         }
 
-        private long getCooldownForItem(ItemStack item) {
+        private long getCooldownForItem(final ItemStack item) {
             return ENCHANTED_GOLDEN_APPLE.isSame(item) ? enchanted : normal;
         }
 
-        boolean isOnCooldown(ItemStack item, LastEaten lastEaten) {
+        boolean isOnCooldown(final ItemStack item, final LastEaten lastEaten) {
             return (sharedCooldown ? lastEaten.getNewestEatTime() : lastEaten.getForItem(item))
                     .map(it -> ChronoUnit.SECONDS.between(it, Instant.now()))
                     .map(it -> it < getCooldownForItem(item))

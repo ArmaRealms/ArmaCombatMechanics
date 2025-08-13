@@ -60,7 +60,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
     // This is so the modules can listen to this event and make their modifications, then EntityDamageByEntityListener sets the new values back.
     // Perform the opposite of the following:
     // (Base + Potion effects, scaled by attack delay) + Critical Hit + (Enchantments, scaled by attack delay), Overdamage, Armour
-    public OCMEntityDamageByEntityEvent(Entity damager, Entity damagee, DamageCause cause, double rawDamage) {
+    public OCMEntityDamageByEntityEvent(final Entity damager, final Entity damagee, final DamageCause cause, final double rawDamage) {
         this.damager = damager;
         this.damagee = damagee;
         this.cause = cause;
@@ -94,7 +94,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         debug(livingDamager, "Raw attack damage: " + rawDamage);
 
         mobEnchantmentsDamage = MobDamage.getEntityEnchantmentsDamage(damageeType, weapon);
-        sharpnessLevel = weapon.getEnchantmentLevel(Enchantment.DAMAGE_ALL);
+        sharpnessLevel = weapon.getEnchantmentLevel(Enchantment.SHARPNESS);
         sharpnessDamage = DamageUtils.getNewSharpnessDamage(sharpnessLevel);
 
         // Scale enchantment damage by attack cooldown
@@ -131,7 +131,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         }
 
         // amplifier 0 = Strength I    amplifier 1 = Strength II
-        strengthLevel = PotionEffects.get(livingDamager, PotionEffectType.INCREASE_DAMAGE)
+        strengthLevel = PotionEffects.get(livingDamager, PotionEffectType.STRENGTH)
                 .map(PotionEffect::getAmplifier)
                 .orElse(-1) + 1;
 
@@ -181,7 +181,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return strengthModifier;
     }
 
-    public void setStrengthModifier(double strengthModifier) {
+    public void setStrengthModifier(final double strengthModifier) {
         this.strengthModifier = strengthModifier;
     }
 
@@ -206,11 +206,11 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return weaknessModifier;
     }
 
-    public void setWeaknessModifier(double weaknessModifier) {
+    public void setWeaknessModifier(final double weaknessModifier) {
         this.weaknessModifier = weaknessModifier;
     }
 
-    public void setWeaknessLevel(int weaknessLevel) {
+    public void setWeaknessLevel(final int weaknessLevel) {
         this.weaknessLevel = weaknessLevel;
     }
 
@@ -218,11 +218,11 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return isStrengthModifierMultiplier;
     }
 
-    public void setIsStrengthModifierMultiplier(boolean isStrengthModifierMultiplier) {
+    public void setIsStrengthModifierMultiplier(final boolean isStrengthModifierMultiplier) {
         this.isStrengthModifierMultiplier = isStrengthModifierMultiplier;
     }
 
-    public void setIsStrengthModifierAddend(boolean isStrengthModifierAddend) {
+    public void setIsStrengthModifierAddend(final boolean isStrengthModifierAddend) {
         this.isStrengthModifierAddend = isStrengthModifierAddend;
     }
 
@@ -230,7 +230,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return isWeaknessModifierMultiplier;
     }
 
-    public void setIsWeaknessModifierMultiplier(boolean weaknessModifierMultiplier) {
+    public void setIsWeaknessModifierMultiplier(final boolean weaknessModifierMultiplier) {
         isWeaknessModifierMultiplier = weaknessModifierMultiplier;
     }
 
@@ -242,7 +242,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return baseDamage;
     }
 
-    public void setBaseDamage(double baseDamage) {
+    public void setBaseDamage(final double baseDamage) {
         this.baseDamage = baseDamage;
     }
 
@@ -250,7 +250,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return mobEnchantmentsDamage;
     }
 
-    public void setMobEnchantmentsDamage(double mobEnchantmentsDamage) {
+    public void setMobEnchantmentsDamage(final double mobEnchantmentsDamage) {
         this.mobEnchantmentsDamage = mobEnchantmentsDamage;
     }
 
@@ -258,7 +258,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return sharpnessDamage;
     }
 
-    public void setSharpnessDamage(double sharpnessDamage) {
+    public void setSharpnessDamage(final double sharpnessDamage) {
         this.sharpnessDamage = sharpnessDamage;
     }
 
@@ -266,7 +266,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return criticalMultiplier;
     }
 
-    public void setCriticalMultiplier(double criticalMultiplier) {
+    public void setCriticalMultiplier(final double criticalMultiplier) {
         this.criticalMultiplier = criticalMultiplier;
     }
 
@@ -276,7 +276,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void setCancelled(final boolean cancelled) {
         this.cancelled = cancelled;
     }
 
@@ -284,7 +284,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return wasSprinting;
     }
 
-    public void setWasSprinting(boolean wasSprinting) {
+    public void setWasSprinting(final boolean wasSprinting) {
         this.wasSprinting = wasSprinting;
     }
 
@@ -292,7 +292,7 @@ public class OCMEntityDamageByEntityEvent extends Event implements Cancellable {
         return was1_8Crit;
     }
 
-    public void setWas1_8Crit(boolean was1_8Crit) {
+    public void setWas1_8Crit(final boolean was1_8Crit) {
         this.was1_8Crit = was1_8Crit;
     }
 }

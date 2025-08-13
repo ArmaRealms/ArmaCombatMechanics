@@ -40,20 +40,20 @@ public class ModuleOldPotionEffects extends OCMModule {
     private static final Set<PotionType> EXCLUDED_POTION_TYPES = EnumSet.of(
             // This only includes 1.9 potions, others are added later for compatibility
             // Instant potions have no duration that can be modified
-            PotionType.INSTANT_DAMAGE, PotionType.INSTANT_HEAL,
+            PotionType.HARMING, PotionType.STRONG_HARMING, PotionType.HEALING, PotionType.STRONG_HEALING,
             // Base potions without any effect
-            PotionType.AWKWARD, PotionType.MUNDANE, PotionType.THICK, PotionType.UNCRAFTABLE, PotionType.WATER
+            PotionType.AWKWARD, PotionType.MUNDANE, PotionType.THICK, PotionType.WATER
     );
 
     private Map<PotionType, PotionDurations> durations;
 
-    public ModuleOldPotionEffects(OCMMain plugin) {
+    public ModuleOldPotionEffects(final OCMMain plugin) {
         super(plugin, "old-potion-effects");
 
         try {
             //Turtle Master potion has two effects and Bukkit only returns one with #getEffectType()
             EXCLUDED_POTION_TYPES.add(PotionType.TURTLE_MASTER);
-        } catch (NoSuchFieldError e) {
+        } catch (final NoSuchFieldError e) {
             debug("Skipping excluding a potion (probably older server version)");
         }
 
@@ -69,7 +69,7 @@ public class ModuleOldPotionEffects extends OCMModule {
      * Change the duration using values defined in config for drinking potions
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onPlayerDrinksPotion(PlayerItemConsumeEvent event) {
+    public void onPlayerDrinksPotion(final PlayerItemConsumeEvent event) {
         final Player player = event.getPlayer();
         if (!isEnabled(player.getWorld())) return;
 
@@ -81,7 +81,7 @@ public class ModuleOldPotionEffects extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPotionDispense(BlockDispenseEvent event) {
+    public void onPotionDispense(final BlockDispenseEvent event) {
         if (!isEnabled(event.getBlock().getWorld())) return;
 
         final ItemStack item = event.getItem();
@@ -93,7 +93,7 @@ public class ModuleOldPotionEffects extends OCMModule {
 
     // We change the potion on-the-fly just as it's thrown to be able to change the effect
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPotionThrow(PlayerInteractEvent event) {
+    public void onPotionThrow(final PlayerInteractEvent event) {
         final Player player = event.getPlayer();
         if (!isEnabled(player.getWorld())) return;
 
@@ -113,7 +113,7 @@ public class ModuleOldPotionEffects extends OCMModule {
      *
      * @param potionItem The potion item with adjusted duration and effects
      */
-    private void adjustPotion(ItemStack potionItem, boolean splash) {
+    private void adjustPotion(final ItemStack potionItem, final boolean splash) {
         final PotionMeta potionMeta = (PotionMeta) potionItem.getItemMeta();
         if (potionMeta == null) return;
 
@@ -138,7 +138,7 @@ public class ModuleOldPotionEffects extends OCMModule {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onDamageByEntity(OCMEntityDamageByEntityEvent event) {
+    public void onDamageByEntity(final OCMEntityDamageByEntityEvent event) {
         final Entity damager = event.getDamager();
         if (!isEnabled(damager.getWorld())) return;
 
@@ -162,7 +162,7 @@ public class ModuleOldPotionEffects extends OCMModule {
         }
     }
 
-    private int getPotionDuration(PotionData potionData, boolean splash) {
+    private int getPotionDuration(final PotionData potionData, final boolean splash) {
         final PotionType potionType = potionData.getType();
 
         final GenericPotionDurations potionDurations = splash ? durations.get(potionType).getSplash()

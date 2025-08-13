@@ -24,12 +24,12 @@ public class ModuleOldArmourDurability extends OCMModule {
 
     private final Map<UUID, List<ItemStack>> explosionDamaged = new WeakHashMap<>();
 
-    public ModuleOldArmourDurability(OCMMain plugin) {
+    public ModuleOldArmourDurability(final OCMMain plugin) {
         super(plugin, "old-armour-durability");
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemDamage(PlayerItemDamageEvent e) {
+    public void onItemDamage(final PlayerItemDamageEvent e) {
         final Player player = e.getPlayer();
 
         if (!isEnabled(player.getWorld())) return;
@@ -57,7 +57,7 @@ public class ModuleOldArmourDurability extends OCMModule {
         int reduction = module().getInt("reduction");
 
         // 60 + (40 / (level + 1) ) % chance that durability is reduced (for each point of durability)
-        final int damageChance = 60 + (40 / (item.getEnchantmentLevel(Enchantment.DURABILITY) + 1));
+        final int damageChance = 60 + (40 / (item.getEnchantmentLevel(Enchantment.UNBREAKING) + 1));
         final Random random = new Random();
         final int randomInt = random.nextInt(100); // between 0 (inclusive) and 100 (exclusive)
         if (randomInt >= damageChance)
@@ -68,7 +68,7 @@ public class ModuleOldArmourDurability extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerExplosionDamage(EntityDamageEvent e) {
+    public void onPlayerExplosionDamage(final EntityDamageEvent e) {
         if (e.isCancelled()) return;
         if (e.getEntityType() != EntityType.PLAYER) return;
         final EntityDamageEvent.DamageCause cause = e.getCause();
@@ -80,7 +80,7 @@ public class ModuleOldArmourDurability extends OCMModule {
         final List<ItemStack> armour = Arrays.stream(player.getInventory().getArmorContents()).filter(Objects::nonNull).collect(Collectors.toList());
         explosionDamaged.put(uuid, armour);
 
-        BukkitRunnable runnable = new BukkitRunnable() {
+        final BukkitRunnable runnable = new BukkitRunnable() {
             @Override
             public void run() {
                 explosionDamaged.remove(uuid);

@@ -45,7 +45,7 @@ public class ModulePlayerKnockback extends OCMModule {
 
     private final Map<UUID, Vector> playerKnockbackHashMap = new WeakHashMap<>();
 
-    public ModulePlayerKnockback(OCMMain plugin) {
+    public ModulePlayerKnockback(final OCMMain plugin) {
         super(plugin, "old-player-knockback");
         reload();
     }
@@ -61,14 +61,14 @@ public class ModulePlayerKnockback extends OCMModule {
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e) {
+    public void onPlayerQuit(final PlayerQuitEvent e) {
         playerKnockbackHashMap.remove(e.getPlayer().getUniqueId());
     }
 
     // Vanilla does its own knockback, so we need to set it again.
     // priority = lowest because we are ignoring the existing velocity, which could break other plugins
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerVelocityEvent(PlayerVelocityEvent event) {
+    public void onPlayerVelocityEvent(final PlayerVelocityEvent event) {
         final UUID uuid = event.getPlayer().getUniqueId();
         if (!playerKnockbackHashMap.containsKey(uuid)) return;
         event.setVelocity(playerKnockbackHashMap.get(uuid));
@@ -76,17 +76,17 @@ public class ModulePlayerKnockback extends OCMModule {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageEvent event) {
+    public void onEntityDamage(final EntityDamageEvent event) {
         // Disable netherite kb, the knockback resistance attribute makes the velocity event not be called
         final Entity entity = event.getEntity();
         if (!(entity instanceof Player) || netheriteKnockbackResistance) return;
-        final AttributeInstance attribute = ((Player) entity).getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+        final AttributeInstance attribute = ((Player) entity).getAttribute(Attribute.KNOCKBACK_RESISTANCE);
         attribute.getModifiers().forEach(attribute::removeModifier);
     }
 
     // Monitor priority because we don't modify anything here, but apply on velocity change event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityDamageEntity(EntityDamageByEntityEvent event) {
+    public void onEntityDamageEntity(final EntityDamageByEntityEvent event) {
         final Entity damager = event.getDamager();
         if (!(damager instanceof LivingEntity)) return;
         final LivingEntity attacker = (LivingEntity) damager;
@@ -102,8 +102,8 @@ public class ModulePlayerKnockback extends OCMModule {
         final Player victim = (Player) damagee;
 
         // Figure out base knockback direction
-        Location attackerLocation = attacker.getLocation();
-        Location victimLocation = victim.getLocation();
+        final Location attackerLocation = attacker.getLocation();
+        final Location victimLocation = victim.getLocation();
         double d0 = attackerLocation.getX() - victimLocation.getX();
         double d1;
 
@@ -143,7 +143,7 @@ public class ModulePlayerKnockback extends OCMModule {
 
         if (netheriteKnockbackResistance) {
             // Allow netherite to affect the horizontal knockback. Each piece of armour yields 10% resistance
-            final double resistance = 1 - victim.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE).getValue();
+            final double resistance = 1 - victim.getAttribute(Attribute.KNOCKBACK_RESISTANCE).getValue();
             playerVelocity.multiply(new Vector(resistance, 1, resistance));
         }
 

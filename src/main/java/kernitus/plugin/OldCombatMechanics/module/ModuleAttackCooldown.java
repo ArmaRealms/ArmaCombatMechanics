@@ -27,7 +27,7 @@ import java.util.Optional;
  */
 public class ModuleAttackCooldown extends OCMModule {
 
-    public ModuleAttackCooldown(OCMMain plugin) {
+    public ModuleAttackCooldown(final OCMMain plugin) {
         super(plugin, "disable-attack-cooldown");
     }
 
@@ -37,17 +37,17 @@ public class ModuleAttackCooldown extends OCMModule {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerLogin(PlayerJoinEvent e) {
+    public void onPlayerLogin(final PlayerJoinEvent e) {
         adjustAttackSpeed(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onWorldChange(PlayerChangedWorldEvent e) {
+    public void onWorldChange(final PlayerChangedWorldEvent e) {
         adjustAttackSpeed(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerQuit(PlayerQuitEvent e) {
+    public void onPlayerQuit(final PlayerQuitEvent e) {
         final Player player = e.getPlayer();
 
         // This is here to make uninstalling the plugin easier
@@ -59,7 +59,7 @@ public class ModuleAttackCooldown extends OCMModule {
      *
      * @param player the player to set it for
      */
-    private void adjustAttackSpeed(Player player) {
+    private void adjustAttackSpeed(final Player player) {
         final World world = player.getWorld();
 
         final double attackSpeed = isEnabled(world)
@@ -75,8 +75,8 @@ public class ModuleAttackCooldown extends OCMModule {
      * @param player      the player to set it for
      * @param attackSpeed the attack speed to set it to
      */
-    public static void setAttackSpeed(Player player, double attackSpeed) {
-        final AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
+    public static void setAttackSpeed(final Player player, final double attackSpeed) {
+        final AttributeInstance attribute = player.getAttribute(Attribute.ATTACK_SPEED);
         if (attribute == null) return;
 
         final double baseValue = attribute.getBaseValue();
@@ -89,7 +89,7 @@ public class ModuleAttackCooldown extends OCMModule {
         }
     }
 
-    public static void setAttackSpeed(Player player, PVPMode mode) {
+    public static void setAttackSpeed(final Player player, final PVPMode mode) {
         setAttackSpeed(player, mode.getBaseAttackSpeed());
     }
 
@@ -104,7 +104,7 @@ public class ModuleAttackCooldown extends OCMModule {
         private final String name;
         private final double baseAttackSpeed;
 
-        PVPMode(String name, double baseAttackSpeed) {
+        PVPMode(final String name, final double baseAttackSpeed) {
             this.name = name;
             this.baseAttackSpeed = baseAttackSpeed;
         }
@@ -135,16 +135,16 @@ public class ModuleAttackCooldown extends OCMModule {
          * @param player the player to get it for
          * @return the PVP mode of the player
          */
-        public static PVPMode getModeForPlayer(Player player) {
+        public static PVPMode getModeForPlayer(final Player player) {
             Objects.requireNonNull(player, "player cannot be null!");
 
-            final double baseAttackSpeed = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).getBaseValue();
+            final double baseAttackSpeed = player.getAttribute(Attribute.ATTACK_SPEED).getBaseValue();
 
             return getByBaseAttackSpeed(baseAttackSpeed)
                     .orElse(PVPMode.OLD_PVP);
         }
 
-        private static Optional<PVPMode> getByBaseAttackSpeed(double speed) {
+        private static Optional<PVPMode> getByBaseAttackSpeed(final double speed) {
             return Arrays.stream(values())
                     .filter(pvpMode -> pvpMode.getBaseAttackSpeed() == speed)
                     .findFirst();

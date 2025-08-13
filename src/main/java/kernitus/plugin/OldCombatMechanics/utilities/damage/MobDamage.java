@@ -17,33 +17,33 @@ public class MobDamage {
     private static final Map<EntityType, Enchantment> enchants;
 
     static {
-        Map<String, Enchantment> allMobs = ImmutableMap.<String, Enchantment>builder()
+        final Map<String, Enchantment> allMobs = ImmutableMap.<String, Enchantment>builder()
 
                 // Undead (https://minecraft.gamepedia.com/Undead)
-                .put("SKELETON", Enchantment.DAMAGE_UNDEAD)
-                .put("ZOMBIE", Enchantment.DAMAGE_UNDEAD)
-                .put("WITHER", Enchantment.DAMAGE_UNDEAD)
-                .put("WITHER_SKELETON", Enchantment.DAMAGE_UNDEAD)
-                .put("ZOMBIFIED_PIGLIN", Enchantment.DAMAGE_UNDEAD)
-                .put("SKELETON_HORSE", Enchantment.DAMAGE_UNDEAD)
-                .put("STRAY", Enchantment.DAMAGE_UNDEAD)
-                .put("HUSK", Enchantment.DAMAGE_UNDEAD)
-                .put("PHANTOM", Enchantment.DAMAGE_UNDEAD)
-                .put("DROWNED", Enchantment.DAMAGE_UNDEAD)
-                .put("ZOGLIN", Enchantment.DAMAGE_UNDEAD)
-                .put("ZOMBIE_HORSE", Enchantment.DAMAGE_UNDEAD)
-                .put("ZOMBIE_VILLAGER", Enchantment.DAMAGE_UNDEAD)
+                .put("SKELETON", Enchantment.SMITE)
+                .put("ZOMBIE", Enchantment.SMITE)
+                .put("WITHER", Enchantment.SMITE)
+                .put("WITHER_SKELETON", Enchantment.SMITE)
+                .put("ZOMBIFIED_PIGLIN", Enchantment.SMITE)
+                .put("SKELETON_HORSE", Enchantment.SMITE)
+                .put("STRAY", Enchantment.SMITE)
+                .put("HUSK", Enchantment.SMITE)
+                .put("PHANTOM", Enchantment.SMITE)
+                .put("DROWNED", Enchantment.SMITE)
+                .put("ZOGLIN", Enchantment.SMITE)
+                .put("ZOMBIE_HORSE", Enchantment.SMITE)
+                .put("ZOMBIE_VILLAGER", Enchantment.SMITE)
 
                 // Arthropods (https://minecraft.gamepedia.com/Arthropod)
-                .put("SPIDER", Enchantment.DAMAGE_ARTHROPODS)
-                .put("CAVE_SPIDER", Enchantment.DAMAGE_ARTHROPODS)
-                .put("BEE", Enchantment.DAMAGE_ARTHROPODS)
-                .put("SILVERFISH", Enchantment.DAMAGE_ARTHROPODS)
-                .put("ENDERMITE", Enchantment.DAMAGE_ARTHROPODS)
+                .put("SPIDER", Enchantment.BANE_OF_ARTHROPODS)
+                .put("CAVE_SPIDER", Enchantment.BANE_OF_ARTHROPODS)
+                .put("BEE", Enchantment.BANE_OF_ARTHROPODS)
+                .put("SILVERFISH", Enchantment.BANE_OF_ARTHROPODS)
+                .put("ENDERMITE", Enchantment.BANE_OF_ARTHROPODS)
 
                 .build();
 
-        ImmutableMap.Builder<EntityType, Enchantment> enchantsBuilder = ImmutableMap.builder();
+        final ImmutableMap.Builder<EntityType, Enchantment> enchantsBuilder = ImmutableMap.builder();
 
         // Add these individually because some may not exist in the Minecraft version we're running
         allMobs.keySet().forEach(entityName -> {
@@ -51,7 +51,7 @@ public class MobDamage {
                 final EntityType entityType = EntityType.valueOf(entityName);
                 final Enchantment enchantment = allMobs.get(entityName);
                 enchantsBuilder.put(entityType, enchantment);
-            } catch (IllegalArgumentException ignored) {
+            } catch (final IllegalArgumentException ignored) {
             } // Mob not supported in this MC version
         });
         enchants = enchantsBuilder.build();
@@ -64,10 +64,10 @@ public class MobDamage {
      * @param item   The enchanted weapon used in the attack
      * @return The damage due to the enchantments
      */
-    public static double getEntityEnchantmentsDamage(EntityType entity, ItemStack item) {
+    public static double getEntityEnchantmentsDamage(final EntityType entity, final ItemStack item) {
         final Enchantment enchantment = enchants.get(entity);
 
-        if (enchantment == null || enchantment != Enchantment.DAMAGE_UNDEAD || enchantment != Enchantment.DAMAGE_ARTHROPODS)
+        if (enchantment == null || enchantment != Enchantment.SMITE || enchantment != Enchantment.BANE_OF_ARTHROPODS)
             return 0;
 
         return 2.5 * item.getEnchantmentLevel(enchantment);

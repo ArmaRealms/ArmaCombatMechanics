@@ -76,11 +76,11 @@ public class DefenceUtils {
      * @param damageCause     The cause of the damage
      */
     @SuppressWarnings("deprecation")
-    public static void calculateDefenceDamageReduction(LivingEntity damagedEntity,
-                                                       Map<EntityDamageEvent.DamageModifier, Double> damageModifiers,
-                                                       EntityDamageEvent.DamageCause damageCause) {
+    public static void calculateDefenceDamageReduction(final LivingEntity damagedEntity,
+                                                       final Map<EntityDamageEvent.DamageModifier, Double> damageModifiers,
+                                                       final EntityDamageEvent.DamageCause damageCause) {
 
-        final double armourPoints = damagedEntity.getAttribute(Attribute.GENERIC_ARMOR).getValue();
+        final double armourPoints = damagedEntity.getAttribute(Attribute.ARMOR).getValue();
         // Make sure we don't go over 100% protection
         final double armourReductionFactor = Math.min(1.0, armourPoints * REDUCTION_PER_ARMOUR_POINT);
 
@@ -109,8 +109,8 @@ public class DefenceUtils {
             // Apply resistance effect
             if (damageModifiers.containsKey(EntityDamageEvent.DamageModifier.RESISTANCE) &&
                     damageCause != EntityDamageEvent.DamageCause.VOID &&
-                    damagedEntity.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
-                final int level = damagedEntity.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE).getAmplifier() + 1;
+                    damagedEntity.hasPotionEffect(PotionEffectType.RESISTANCE)) {
+                final int level = damagedEntity.getPotionEffect(PotionEffectType.RESISTANCE).getAmplifier() + 1;
                 // Make sure we don't go over 100% protection
                 final double resistanceReductionFactor = Math.min(1.0, level * REDUCTION_PER_RESISTANCE_LEVEL);
                 final double resistanceReduction = -resistanceReductionFactor * currentDamage;
@@ -130,7 +130,7 @@ public class DefenceUtils {
             // Absorption
             if(damageModifiers.containsKey(EntityDamageEvent.DamageModifier.ABSORPTION)) {
                 final double absorptionAmount = getAbsorptionAmount.apply(damagedEntity);
-                double absorptionReduction = -Math.min(absorptionAmount, currentDamage);
+                final double absorptionReduction = -Math.min(absorptionAmount, currentDamage);
                 damageModifiers.put(EntityDamageEvent.DamageModifier.ABSORPTION, absorptionReduction);
             }
         }
@@ -151,13 +151,13 @@ public class DefenceUtils {
      * @param damageCause    The source of damage
      * @return The damage done to the entity after armour is taken into account
      */
-    public static double getDamageAfterArmour1_8(double baseDamage, ItemStack[] armourContents, EntityDamageEvent.DamageCause damageCause) {
+    public static double getDamageAfterArmour1_8(final double baseDamage, final ItemStack[] armourContents, final EntityDamageEvent.DamageCause damageCause) {
         double armourPoints = 0;
         for (int i = 0; i < armourContents.length; i++) {
             final ItemStack itemStack = armourContents[i];
             if (itemStack == null) continue;
             final EquipmentSlot slot = new EquipmentSlot[]{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD}[i];
-            armourPoints += getAttributeModifierSum(itemStack.getType().getDefaultAttributeModifiers(slot).get(Attribute.GENERIC_ARMOR));
+            armourPoints += getAttributeModifierSum(itemStack.getType().getDefaultAttributeModifiers(slot).get(Attribute.ARMOR));
         }
 
         final double reductionFactor = armourPoints * REDUCTION_PER_ARMOUR_POINT;
@@ -182,9 +182,9 @@ public class DefenceUtils {
      * Applies all the operations for the attribute modifiers of a specific attribute.
      * Does not take into account the base value.
      */
-    private static double getAttributeModifierSum(Collection<AttributeModifier> modifiers) {
+    private static double getAttributeModifierSum(final Collection<AttributeModifier> modifiers) {
         double sum = 0;
-        for (AttributeModifier modifier : modifiers) {
+        for (final AttributeModifier modifier : modifiers) {
             final double value = modifier.getAmount();
             switch (modifier.getOperation()) {
                 case ADD_SCALAR:
@@ -201,14 +201,14 @@ public class DefenceUtils {
         return sum;
     }
 
-    private static double calculateArmourEnchantmentReductionFactor(ItemStack[] armourContents, EntityDamageEvent.DamageCause cause) {
+    private static double calculateArmourEnchantmentReductionFactor(final ItemStack[] armourContents, final EntityDamageEvent.DamageCause cause) {
         int totalEpf = 0;
-        for (ItemStack armourItem : armourContents) {
+        for (final ItemStack armourItem : armourContents) {
             if (armourItem != null && armourItem.getType() != Material.AIR) {
-                for (EnchantmentType enchantmentType : EnchantmentType.values()) {
+                for (final EnchantmentType enchantmentType : EnchantmentType.values()) {
                     if (!enchantmentType.protectsAgainst(cause)) continue;
 
-                    int enchantmentLevel = armourItem.getEnchantmentLevel(enchantmentType.getEnchantment());
+                    final int enchantmentLevel = armourItem.getEnchantmentLevel(enchantmentType.getEnchantment());
 
                     if (enchantmentLevel > 0) {
                         totalEpf += enchantmentType.getEpf(enchantmentLevel);
@@ -257,7 +257,7 @@ public class DefenceUtils {
 
             return damageCauses;
         },
-                0.75, Enchantment.PROTECTION_ENVIRONMENTAL),
+                0.75, Enchantment.PROTECTION),
         FIRE_PROTECTION(() -> {
             EnumSet<EntityDamageEvent.DamageCause> damageCauses = EnumSet.of(
                     EntityDamageEvent.DamageCause.FIRE,
@@ -270,23 +270,23 @@ public class DefenceUtils {
             }
 
             return damageCauses;
-        }, 1.25, Enchantment.PROTECTION_FIRE),
+        }, 1.25, Enchantment.FIRE_PROTECTION),
         BLAST_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.ENTITY_EXPLOSION,
                 EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
-        ), 1.5, Enchantment.PROTECTION_EXPLOSIONS),
+        ), 1.5, Enchantment.BLAST_PROTECTION),
         PROJECTILE_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.PROJECTILE
-        ), 1.5, Enchantment.PROTECTION_PROJECTILE),
+        ), 1.5, Enchantment.PROJECTILE_PROTECTION),
         FALL_PROTECTION(() -> EnumSet.of(
                 EntityDamageEvent.DamageCause.FALL
-        ), 2.5, Enchantment.PROTECTION_FALL);
+        ), 2.5, Enchantment.FEATHER_FALLING);
 
         private final Set<EntityDamageEvent.DamageCause> protection;
         private final double typeModifier;
         private final Enchantment enchantment;
 
-        EnchantmentType(Supplier<Set<EntityDamageEvent.DamageCause>> protection, double typeModifier, Enchantment enchantment) {
+        EnchantmentType(final Supplier<Set<EntityDamageEvent.DamageCause>> protection, final double typeModifier, final Enchantment enchantment) {
             this.protection = protection.get();
             this.typeModifier = typeModifier;
             this.enchantment = enchantment;
@@ -298,7 +298,7 @@ public class DefenceUtils {
          * @param cause the damage cause
          * @return true if the armour protects against the given damage cause
          */
-        public boolean protectsAgainst(EntityDamageEvent.DamageCause cause) {
+        public boolean protectsAgainst(final EntityDamageEvent.DamageCause cause) {
             return protection.contains(cause);
         }
 
@@ -317,7 +317,7 @@ public class DefenceUtils {
          * @param level the level of the enchantment
          * @return the EPF
          */
-        public int getEpf(int level) {
+        public int getEpf(final int level) {
             // floor ( (6 + level^2) * TypeModifier / 3 )
             return (int) Math.floor((6 + level * level) * typeModifier / 3);
         }
